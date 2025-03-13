@@ -84,21 +84,21 @@ export default function navbar() {
     Report Waste
   </Link>
 </li>
-        <li>
-          <a
-            href="#testimonials"
-            className="hover:text-[#F39C12] transition-colors duration-300"
-          >
-            Testimonials
-          </a>
+<li>
+        <Link
+    to="/reward"
+    className="hover:text-[#F39C12] transition-colors duration-300"
+  >
+    GreenCoins
+  </Link>
         </li>
         <li>
-          <a
-            href="#contact"
-            className="hover:text-[#F39C12] transition-colors duration-300"
-          >
-            Contact
-          </a>
+        <Link
+    to="/marketplace"
+    className="hover:text-[#F39C12] transition-colors duration-300"
+  >
+    Marketplace
+  </Link>
         </li>
         <li>
              <header className='hdr'>
@@ -168,12 +168,12 @@ export default function navbar() {
           </a>
         </li>
         <li>
-          <a
-            href="#testimonials"
-            className="block py-2 hover:text-[#F39C12] transition-colors duration-300"
-          >
-            Testimonials
-          </a>
+        <Link
+    to="/reward"
+    className="hover:text-[#F39C12] transition-colors duration-300"
+  >
+    GreenCoins
+  </Link>
         </li>
         <li>
           <a
@@ -183,14 +183,7 @@ export default function navbar() {
             Contact
           </a>
         </li>
-        <li>
-          <a
-            href="#faq"
-            className="block py-2 hover:text-[#F39C12] transition-colors duration-300"
-          >
-            FAQ
-          </a>
-        </li>
+    
       </ul>
     </div>
   </nav>
