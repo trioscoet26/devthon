@@ -1,6 +1,7 @@
 import React from 'react'
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react'
 import { Link } from 'react-router-dom';
+import DarkModeToggle from "./DarkModeToggle";
 
 export default function navbar() {
   return (
@@ -110,6 +111,8 @@ export default function navbar() {
                </SignedIn>
              </header>
         </li>
+
+        <DarkModeToggle />
       </ul>
     </div>
     {/* Mobile navigation */}
