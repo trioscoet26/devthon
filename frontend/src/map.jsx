@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import sampleImage from "./sample.png"// Adjust the path as needed
+import { useState } from "react";
 
 
 // Custom Red Marker Icon
@@ -12,6 +13,8 @@ const redIcon = new L.Icon({
   iconAnchor: [20, 40],
   popupAnchor: [0, -35],
 });
+
+
 
 // Garbage dump locations in Amravati
 const garbageLocations = [
@@ -37,7 +40,17 @@ const OpenAllPopups = () => {
 
   return null;
 };
-export default function map() {
+export default function Map() {
+
+
+  const [file, setFile] = useState(null);
+
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+    }
+  };
   return (
     <div>
       <section id="map-interface" className="py-16 bg-white dark:bg-neutral-800">
@@ -296,52 +309,86 @@ export default function map() {
             />
             {/* Camera Controls */}
             <div className="grid grid-cols-1 gap-4 w-full">
-              <button
-                id="open-camera-btn"
-                className="bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center transition duration-300 transform hover:scale-105"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-                Open Camera
-              </button>
-              <button
-                id="capture-btn"
-                className="hidden bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center transition duration-300 transform hover:scale-105"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14"
-                  />
-                </svg>
-                Take Photo
-              </button>
+            <button
+        id="open-camera-btn"
+        className="bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center transition duration-300 transform hover:scale-105"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-5 w-5 mr-2"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+          />
+        </svg>
+        Open Camera
+      </button>
+
+      {/* Capture Photo Button */}
+      <button
+        id="capture-btn"
+        className="hidden bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center transition duration-300 transform hover:scale-105"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-5 w-5 mr-2"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14"
+          />
+        </svg>
+        Take Photo
+      </button>
+
+      {/* Upload File Button */}
+      <label className="cursor-pointer bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center transition duration-300 transform hover:scale-105">
+        <input
+          type="file"
+          accept=".png,.jpeg,.jpg,.mp4"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+    <svg
+  xmlns="http://www.w3.org/2000/svg"
+  className="h-5 w-5 mr-2"
+  fill="none"
+  viewBox="0 0 24 24"
+  stroke="currentColor"
+>
+  <path
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    strokeWidth={2}
+    d="M5 10l7-7m0 0l7 7m-7-7v14"
+  />
+</svg>
+
+        Upload Image or Video (*.png/.jpeg/.jpg/.mp4)
+      </label>
+
+      {file && (
+        <p className="text-gray-700 text-sm mt-2">
+          Selected file: <strong>{file.name}</strong>
+        </p>
+      )}
               <button
                 id="detect-garbage-btn"
                 className="hidden bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center transition duration-300 transform hover:scale-105"
