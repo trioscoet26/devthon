@@ -102,9 +102,9 @@ export default function navbar() {
           </a>
         </li>
         <li>
-             <header className='hdr'>
+             <header>
                <SignedOut className='btnsignin'>
-                 <SignInButton />
+                 <SignInButton className="bg-[#1e8449] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#166534] active:shadow-lg transition cursor-pointer" />
                </SignedOut>
                <SignedIn>
                  <UserButton />
