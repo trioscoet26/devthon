@@ -1,33 +1,34 @@
-const User = require('../models/User');
+import User from "../models/userModel.js";
 
-// Get user profile with GreenCoins
-exports.getUserProfile = async (req, res) => {
+export const save = async (req, res) => {
   try {
-    const { userId } = req.auth;
-    
-    let user = await User.findOne({ clerkId: userId });
-    
-    if (!user) {
-      // Create new user record if first time accessing
-      user = await User.create({
-        clerkId: userId,
-        email: req.auth.user.primaryEmailAddress.emailAddress,
-        name: `${req.auth.user.firstName} ${req.auth.user.lastName}`,
-        greenCoins: 0,
-        reportsSubmitted: 0
-      });
+    const { type, data } = req.body; // Get event type and user data
+
+    if (type === "user.created") {
+      const { id, first_name, last_name, email_addresses } = data;
+
+      const email = email_addresses[0]?.email_address;
+
+      // Check if user already exists
+      let user = await User.findOne({ clerkId: id });
+
+      if (!user) {
+        user = new User({
+          clerkId: id,
+          name: `${first_name} ${last_name}`,
+          email,
+          totalCoins: 0,
+          reports: [],
+        });
+
+        await user.save();
+      }
+
+      return res.status(200).json({ message: "User saved successfully", user });
     }
-    
-    res.status(200).json({
-      success: true,
-      data: user
-    });
+
+    return res.status(400).json({ message: "Invalid event type" });
   } catch (error) {
-    console.error('Error fetching user profile:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch user profile',
-      error: error.message
-    });
+    return res.status(500).json({ message: "Error processing webhook", error: error.message });
   }
 };

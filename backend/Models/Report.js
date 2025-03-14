@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
-const reportDataSchema = new mongoose.Schema({
+const ReportSchema = new mongoose.Schema({
+  user: { type: String, required: true }, // User who reported
   waste_type: {
     type: String,
     enum: [
@@ -39,12 +40,15 @@ const reportDataSchema = new mongoose.Schema({
     ],
     required: true,
   },
-  location_address: { type: String, required: true },
-  use_current_location: { type: Boolean, required: true },
   description: { type: String, required: true },
+  location: { type: String, required: true }, // Simple string for location
+  latitude: { type: Number, required: true },
+  longitude: { type: Number, required: true },
+  coinsEarned: { type: Number, default: 0 }, // Coins awarded for the report
+  status: { type: String, enum: ["pending", "accepted"], default: "pending" }, // Report status
+  reportedAt: { type: Date, default: Date.now }, // Date of reporting
 });
 
-const reportDataModel =
-  mongoose.models.wasteData || mongoose.model("wasteData", reportDataSchema);
+const Report = mongoose.model("Report", ReportSchema);
 
-export default reportDataModel;
+export default Report;

@@ -1,6 +1,148 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@clerk/clerk-react';
+import axios from 'axios';
 
-export default function report() {
+export default function Report() {
+  
+  const { getToken } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [error, setError] = useState(null);
+  const [useCurrentLocation, setUseCurrentLocation] = useState(false);
+  const [coordinates, setCoordinates] = useState({ latitude: null, longitude: null });
+  
+  const [formData, setFormData] = useState({
+    waste_type: '',
+    estimated_quantity: 'small',
+    location_type: 'street',
+    location: '',
+    description: '',
+    latitude: null,
+    longitude: null
+  });
+
+  // Get current location when toggle is switched
+  useEffect(() => {
+    if (useCurrentLocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setCoordinates({ latitude, longitude });
+          setFormData(prev => ({ ...prev, latitude, longitude }));
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          setError('Unable to get your current location. Please enter location manually.');
+          setUseCurrentLocation(false);
+        }
+      );
+    }
+  }, [useCurrentLocation]);
+
+  // Debug log whenever formData changes
+  useEffect(() => {
+    console.log('Form data updated:', formData);
+  }, [formData]);
+
+  const handleWasteTypeChange = (e) => {
+    setFormData({
+      ...formData,
+      waste_type: e.target.value
+    });
+  };
+
+  const handleQuantityChange = (e) => {
+    setFormData({
+      ...formData,
+      estimated_quantity: e.target.value
+    });
+  };
+
+  const handleLocationTypeChange = (e) => {
+    setFormData({
+      ...formData,
+      location_type: e.target.value
+    });
+  };
+
+  const handleAddressChange = (e) => {
+    setFormData({
+      ...formData,
+      location: e.target.value
+    });
+  };
+
+  const handleDescriptionChange = (e) => {
+    setFormData({
+      ...formData,
+      description: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+    
+    try {
+      // Validate form data
+      if (!formData.waste_type) {
+        throw new Error('Please select a waste type');
+      }
+      
+      if (!formData.location) {
+        throw new Error('Please enter a location description');
+      }
+      
+      if (!formData.latitude || !formData.longitude) {
+        throw new Error('Location coordinates are required. Please use current location or enter a valid address.');
+      }
+
+      if (!formData.description) {
+        throw new Error('Please enter a description');
+      }
+      
+      // Get authentication token from Clerk
+      const token = await getToken();
+      
+      console.log('Submitting form data:', formData);
+      
+      // Send the report to the backend
+      // eslint-disable-next-line no-unused-vars
+      const response = await axios.post(
+        'http://localhost:5000/api/reports',
+        formData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      setSubmitSuccess(true);
+      
+      // Reset form after successful submission
+      setTimeout(() => {
+        setFormData({
+          waste_type: '',
+          estimated_quantity: 'small',
+          location_type: 'street',
+          location: '',
+          description: '',
+          latitude: null,
+          longitude: null
+        });
+        setSubmitSuccess(false);
+      }, 3000);
+      
+    } catch (err) {
+      console.error('Error creating report:', err);
+      setError(err.response?.data?.message || err.message || 'An error occurred while submitting the report');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   return (
      <>
 
@@ -45,175 +187,215 @@ export default function report() {
 
 
 
-          
-          <form className="p-6 space-y-6">
-            <div>
-              <label
-                htmlFor="waste-type"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          <form className="p-6 space-y-6" onSubmit={handleSubmit}>
+      {error && (
+        <div className="p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-md">
+          {error}
+        </div>
+      )}
+      
+      {submitSuccess && (
+        <div className="p-3 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-md">
+          Report submitted successfully! You'll receive GreenCoins once your report is verified.
+        </div>
+      )}
+      
+      <div>
+        <label
+          htmlFor="waste-type"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+        >
+          Waste Type
+        </label>
+        <select
+          id="waste-type"
+          value={formData.waste_type}
+          onChange={handleWasteTypeChange}
+          className="w-full px-4 py-2 border border-gray-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
+        >
+          <option value="" disabled>Select waste type</option>
+          <option value="plastic">Plastic</option>
+          <option value="paper">Paper/Cardboard</option>
+          <option value="glass">Glass</option>
+          <option value="metal">Metal</option>
+          <option value="electronic">Electronic Waste</option>
+          <option value="organic">Organic Waste</option>
+          <option value="construction">Construction Debris</option>
+          <option value="hazardous">Hazardous Materials</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label
+            htmlFor="waste-quantity"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          >
+            Estimated Quantity
+          </label>
+          <select
+            id="waste-quantity"
+            value={formData.estimated_quantity}
+            onChange={handleQuantityChange}
+            className="w-full px-4 py-2 border border-gray-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
+          >
+            <option value="small">Small (&lt; 5kg)</option>
+            <option value="medium">Medium (5-20kg)</option>
+            <option value="large">Large (20-100kg)</option>
+            <option value="very-large">Very Large (&gt;100kg)</option>
+          </select>
+        </div>
+        
+        <div>
+          <label
+            htmlFor="location-type"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          >
+            Location Type
+          </label>
+          <select
+            id="location-type"
+            value={formData.location_type}
+            onChange={handleLocationTypeChange}
+            className="w-full px-4 py-2 border border-gray-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
+          >
+            <option value="street">Street/Sidewalk</option>
+            <option value="park">Park/Garden</option>
+            <option value="beach">Beach/Waterfront</option>
+            <option value="forest">Forest/Natural Area</option>
+            <option value="residential">Residential Area</option>
+            <option value="commercial">Commercial Area</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+      
+      <div>
+        <label
+          htmlFor="location-address"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+        >
+          Location Address/Description
+        </label>
+        <input
+          type="text"
+          id="location-address"
+          value={formData.location}
+          onChange={handleAddressChange}
+          placeholder="Enter address or describe the location"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
+        />
+      </div>
+      
+      <div className="flex items-center justify-between bg-gray-50 dark:bg-neutral-700 p-3 rounded-lg">
+        <div className="flex items-center gap-2">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5 text-teal-600 dark:text-teal-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+          </svg>
+          <span className="text-sm text-gray-700 dark:text-gray-300">
+            Use current location
+          </span>
+        </div>
+        <div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={useCurrentLocation}
+              onChange={() => setUseCurrentLocation(!useCurrentLocation)}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 dark:peer-focus:ring-teal-800 rounded-full peer dark:bg-neutral-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-neutral-600 peer-checked:bg-teal-600" />
+          </label>
+        </div>
+      </div>
+      
+      {useCurrentLocation && coordinates.latitude && coordinates.longitude && (
+        <div className="text-sm text-gray-600 dark:text-gray-400">
+          Location captured: {coordinates.latitude.toFixed(6)}, {coordinates.longitude.toFixed(6)}
+        </div>
+      )}
+      
+      <div>
+        <label
+          htmlFor="waste-description"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+        >
+          Description
+        </label>
+        <textarea
+          id="waste-description"
+          value={formData.description}
+          onChange={handleDescriptionChange}
+          rows={3}
+          placeholder="Provide any additional details about the waste"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
+        />
+      </div>
+      
+      <div className="pt-4">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className={`w-full py-3 ${isSubmitting ? 'bg-teal-400' : 'bg-teal-600 hover:bg-teal-700'} text-white font-medium rounded-lg transition duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center`}
+        >
+          {isSubmitting ? (
+            <>
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Submitting...
+            </>
+          ) : (
+            <>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
-                Waste Type
-              </label>
-              <select
-                id="waste-type"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
-              >
-                <option value="" selected="" disabled="">
-                  Select waste type
-                </option>
-                <option value="plastic">Plastic</option>
-                <option value="paper">Paper/Cardboard</option>
-                <option value="glass">Glass</option>
-                <option value="metal">Metal</option>
-                <option value="electronic">Electronic Waste</option>
-                <option value="organic">Organic Waste</option>
-                <option value="construction">Construction Debris</option>
-                <option value="hazardous">Hazardous Materials</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label
-                  htmlFor="waste-quantity"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Estimated Quantity
-                </label>
-                <select
-                  id="waste-quantity"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="small">Small (&lt; 5kg)</option>
-                  <option value="medium">Medium (5-20kg)</option>
-                  <option value="large">Large (20-100kg)</option>
-                  <option value="very-large">Very Large (&gt;100kg)</option>
-                </select>
-              </div>
-              <div>
-                <label
-                  htmlFor="location-type"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Location Type
-                </label>
-                <select
-                  id="location-type"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="street">Street/Sidewalk</option>
-                  <option value="park">Park/Garden</option>
-                  <option value="beach">Beach/Waterfront</option>
-                  <option value="forest">Forest/Natural Area</option>
-                  <option value="residential">Residential Area</option>
-                  <option value="commercial">Commercial Area</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-            </div>
-            <div>
-              <label
-                htmlFor="location-address"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                Location Address/Description
-              </label>
-              <input
-                type="text"
-                id="location-address"
-                placeholder="Enter address or describe the location"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
-              />
-            </div>
-            <div className="flex items-center justify-between bg-gray-50 dark:bg-neutral-700 p-3 rounded-lg">
-              <div className="flex items-center gap-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-teal-600 dark:text-teal-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-                <span className="text-sm text-gray-700 dark:text-gray-300">
-                  Use current location
-                </span>
-              </div>
-              <div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    defaultValue=""
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 dark:peer-focus:ring-teal-800 rounded-full peer dark:bg-neutral-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-neutral-600 peer-checked:bg-teal-600" />
-                </label>
-              </div>
-            </div>
-            <div>
-              <label
-                htmlFor="waste-description"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                Description (Optional)
-              </label>
-              <textarea
-                id="waste-description"
-                rows={3}
-                placeholder="Provide any additional details about the waste"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                defaultValue={""}
-              />
-            </div>
-          
-            <div className="pt-4">
-              <button
-                type="submit"
-                className="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                Submit Report
-              </button>
-            </div>
-            <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-              You'll earn approximately{" "}
-              <span className="font-medium text-teal-600 dark:text-teal-400">
-                15-50 GreenCoins
-              </span>{" "}
-              based on your report details
-            </div>
-          </form>
-
-
-
-
-
-
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Submit Report
+            </>
+          )}
+        </button>
+      </div>
+      
+      <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+        You'll earn approximately{" "}
+        <span className="font-medium text-teal-600 dark:text-teal-400">
+          {formData.estimated_quantity === 'small' ? '10' : 
+           formData.estimated_quantity === 'medium' ? '20' : 
+           formData.estimated_quantity === 'large' ? '30' : '50'} GreenCoins
+        </span>{" "}
+        based on your report details
+      </div>
+    </form>
 
 
 
@@ -233,6 +415,11 @@ export default function report() {
 
         </div>
       </div>
+
+
+
+
+
       {/* Features and Benefits */}
       <div className="lg:w-1/2 order-1 lg:order-2">
         <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
@@ -444,6 +631,28 @@ export default function report() {
         </div>
       </div>
     </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
     {/* Recent Reports */}
     <div className="mt-16">
       <h3 className="text-2xl font-bold text-gray-800 dark:text-white text-center mb-8">

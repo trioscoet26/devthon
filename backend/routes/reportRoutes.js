@@ -1,18 +1,40 @@
-const express = require("express");
+import express from 'express';
+import { 
+  createReport,
+  getAllReports,
+  getUserReports,
+  getReportById,
+  updateReport,
+  deleteReport,
+  updateReportStatus
+} from '../controllers/reportController.js';
+import { ClerkExpressRequireAuth } from '@clerk/clerk-sdk-node';
+
 const router = express.Router();
-const { createReport, getUserReports, getReportById, updateReportStatus } = require("../controllers/reportController");
-const { requireAuth } = require("@clerk/express"); // Middleware to protect routes
 
-// ✅ Create a new report (Logged-in user)
-router.post("/", requireAuth(), createReport);
+// Apply Clerk authentication middleware to all routes
+// This will ensure the user is authenticated via Clerk before accessing any route
+const requireAuth = ClerkExpressRequireAuth();
 
-// ✅ Get all reports of logged-in user
-router.get("/get", requireAuth(), getUserReports);
+// Create a new report
+router.post('/', requireAuth, createReport);
 
-// ✅ Get a single report by ID
-router.get("/:id", requireAuth(), getReportById);
+// Get all reports
+router.get('/', requireAuth, getAllReports);
 
-// ✅ Update report status (Admin)
-router.put("/:id/status", requireAuth(), updateReportStatus);
+// Get current user's reports
+router.get('/user', requireAuth, getUserReports);
 
-module.exports = router;
+// Get a specific report by ID
+router.get('/:id', requireAuth, getReportById);
+
+// Update a report
+router.put('/:id', requireAuth, updateReport);
+
+// Delete a report
+router.delete('/:id', requireAuth, deleteReport);
+
+// Update report status (potentially admin-only)
+router.patch('/:id/status', requireAuth, updateReportStatus);
+
+export default router;
