@@ -3,13 +3,9 @@ import Navbar from './navbar'
 import Footer from './footer'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Report from './report'; // Adjust the path as needed
-<<<<<<< HEAD
 import Reward from './reward'; // Adjust the path as needed
 import Marketplace from './marketplace';
-=======
 import { ClerkProvider,useUser } from '@clerk/clerk-react';
->>>>>>> 7a22e3853501920c03cb31871ecc0eeb9c7ff690
-
 function App() {
   const {user} = useUser();
 
