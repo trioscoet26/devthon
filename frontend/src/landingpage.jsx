@@ -1,7 +1,7 @@
 import React from 'react'
 import Hero from './hero'
 import Map from './map'
-export default function landingpaeg() {
+export default function landingpage() {
   return (
     <div>
       <Hero />

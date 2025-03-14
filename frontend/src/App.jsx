@@ -1,4 +1,4 @@
-import Landingpaeg from './landingpaeg'
+import Landingpage from './landingpage'
 import Navbar from './navbar'
 import Footer from './footer'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -12,7 +12,7 @@ function App() {
     <Navbar />
 
       <Routes>
-        <Route path="/" element={<Landingpaeg />} />
+        <Route path="/" element={<Landingpage />} />
         <Route path="/report" element={<Report />} />
       </Routes>
       <Footer />
