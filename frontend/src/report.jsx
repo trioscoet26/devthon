@@ -22,7 +22,9 @@ export default function Report() {
     location: '',
     description: '',
     latitude: null,
-    longitude: null
+    longitude: null,
+    coinsEarned: 0 // Add this field to track the coins in the form data
+
   });
 
 
@@ -37,28 +39,10 @@ export default function Report() {
     fetchToken();
   }, [getToken]); // Runs when `getToken` changes
 
-  // Fetch reports only when the token is available
-  useEffect(() => {
-    if (!token) return; // Wait for token
 
-    const fetchReports = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get("http://localhost:5000/api/reports/user", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
 
-        setReports(response.data);
-      } catch (err) {
-        console.error("Error fetching reports:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    fetchReports();
-  }, [token]); // Runs only when token is set
-  // Get current location when toggle is switched
+
   useEffect(() => {
     if (useCurrentLocation) {
       navigator.geolocation.getCurrentPosition(
@@ -75,11 +59,28 @@ export default function Report() {
       );
     }
   }, [useCurrentLocation]);
+    // Calculate GreenCoins based on waste quantity whenever quantity changes
+    useEffect(() => {
+      // Calculate coins based on quantity
+      const calculateCoins = () => {
+        switch(formData.estimated_quantity) {
+          case 'small': return 10;
+          case 'medium': return 20;
+          case 'large': return 30;
+          case 'very-large': return 50;
+          default: return 10;
+        }
+      };
+      
+      const coins = calculateCoins();
+      setFormData(prev => ({ ...prev, coinsEarned: coins }));
+    }, [formData.estimated_quantity]);
+  
+    // Debug log whenever formData changes
+    useEffect(() => {
+      console.log('Form data updated:', formData);
+    }, [formData]);
 
-  // Debug log whenever formData changes
-  useEffect(() => {
-    console.log('Form data updated:', formData);
-  }, [formData]);
 
   const handleWasteTypeChange = (e) => {
     setFormData({
@@ -116,70 +117,123 @@ export default function Report() {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
+ // Create a reusable function to fetch reports
+ const fetchReports = async (retryCount = 0) => {
+  if (!token) {
+    console.log("No token available, skipping fetch");
+    return;
+  }
+  
+  try {
+    setLoading(true);
+    console.log("Fetching reports with token:", token.substring(0, 10) + "...");
     
-    try {
-      // Validate form data
-      if (!formData.waste_type) {
-        throw new Error('Please select a waste type');
-      }
-      
-      if (!formData.location) {
-        throw new Error('Please enter a location description');
-      }
-      
-      if (!formData.latitude || !formData.longitude) {
-        throw new Error('Location coordinates are required. Please use current location or enter a valid address.');
-      }
+    const response = await axios.get("http://localhost:5000/api/reports/user", {
+      headers: { Authorization: `Bearer ${token}` },
+      timeout: 10000 // Set a timeout of 10 seconds
+    });
+    
+    setReports(response.data);
+    console.log("Successfully fetched reports:", response.data.length);
+  } catch (err) {
+    console.error("Error fetching reports:", err);
+    
+    // If we haven't retried too many times and it's a network error, retry
+    if (retryCount < 3 && (err.code === 'ECONNABORTED' || !err.response)) {
+      console.log(`Retrying fetch (attempt ${retryCount + 1}/3)...`);
+      // Wait for 1 second before retrying
+      setTimeout(() => fetchReports(retryCount + 1), 1000);
+      return;
+    }
+    
+    // You might want to set an error state to display to the user
+    // setFetchError("Failed to load your reports. Please try again later.");
+  } finally {
+    setLoading(false);
+  }
+};
 
-      if (!formData.description) {
-        throw new Error('Please enter a description');
+// Use the function in the useEffect
+useEffect(() => {
+  let isMounted = true;
+  
+  const initFetch = async () => {
+    if (!token) {
+      console.log("No token yet, waiting...");
+      return;
+    }
+    
+    // Verify the token is valid before fetching
+    try {
+      const currentToken = await getToken();
+      if (currentToken && isMounted) {
+        console.log("Token verified, starting fetch");
+        fetchReports();
       }
-      
-      // Get authentication token from Clerk
-      const token = await getToken();
-      
-      console.log('Submitting form data:', formData);
-      
-      // Send the report to the backend
-      // eslint-disable-next-line no-unused-vars
-      const response = await axios.post(
-        'http://localhost:5000/api/reports',
-        formData,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      
-      setSubmitSuccess(true);
-      
-      // Reset form after successful submission
-      setTimeout(() => {
-        setFormData({
-          waste_type: '',
-          estimated_quantity: 'small',
-          location_type: 'street',
-          location: '',
-          description: '',
-          latitude: null,
-          longitude: null
-        });
-        setSubmitSuccess(false);
-      }, 3000);
-      
-    } catch (err) {
-      console.error('Error creating report:', err);
-      setError(err.response?.data?.message || err.message || 'An error occurred while submitting the report');
-    } finally {
-      setIsSubmitting(false);
+    } catch (tokenErr) {
+      console.error("Error verifying token:", tokenErr);
     }
   };
+  
+  initFetch();
+  
+  // Cleanup function
+  return () => {
+    isMounted = false;
+  };
+}, [token, getToken]); // Only depends on token now
+
+// Modify handleSubmit to use the same function
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setIsSubmitting(true);
+  setError(null);
+  
+  try {
+    // Validation and form submission code...
+    
+    // Get authentication token directly rather than from state
+    const authToken = await getToken();
+    
+    const response = await axios.post(
+      'http://localhost:5000/api/reports',
+      formData,
+      {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    
+    setSubmitSuccess(true);
+    
+    // Use the shared fetchReports function instead of duplicating code
+    fetchReports();
+    
+    // Reset form after successful submission
+    setTimeout(() => {
+      setFormData({
+        waste_type: '',
+        estimated_quantity: 'small',
+        location_type: 'street',
+        location: '',
+        description: '',
+        latitude: null,
+        longitude: null,
+        coinsEarned: 10 // Default to small quantity coins
+
+      });
+      setSubmitSuccess(false);
+    }, 3000);
+    
+  } catch (err) {
+    console.error('Error creating report:', err);
+    setError(err.response?.data?.message || err.message || 'An error occurred while submitting the report');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
 
 
@@ -302,9 +356,41 @@ export default function Report() {
 
 
 // Calculate statistics
-const totalCoins = reports.reduce((sum, report) => sum + report.coinsEarned, 0);
+const totalCoins = reports
+  .filter(report => report.status === 'accepted')
+  .reduce((sum, report) => sum + report.coinsEarned, 0);
+
 const pendingReports = reports.filter(report => report.status === 'pending').length;
 const acceptedReports = reports.filter(report => report.status === 'accepted').length;
+
+
+
+
+
+
+  // Fetch reports only when the token is available
+  useEffect(() => {
+    if (!token) return; // Wait for token
+
+    const fetchReports = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get("http://localhost:5000/api/reports/user", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setReports(response.data);
+      } catch (err) {
+        console.error("Error fetching reports:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReports();
+  }, [token]); // Runs only when token is set
+
+
   return (
      <>
 
@@ -924,7 +1010,7 @@ const acceptedReports = reports.filter(report => report.status === 'accepted').l
                   <span className={`px-2 py-1 ${statusStyles[report.status]} rounded-full text-xs mr-2`}>
                     {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
                   </span>
-                  {report.coinsEarned > 0 && (
+                  {report.status === 'accepted' && (
                     <span className="flex items-center bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-full text-xs">
                       +{report.coinsEarned} coins
                     </span>
