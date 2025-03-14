@@ -1,6 +1,8 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import axios from 'axios';
+
 
 export default function Report() {
   
@@ -10,6 +12,8 @@ export default function Report() {
   const [error, setError] = useState(null);
   const [useCurrentLocation, setUseCurrentLocation] = useState(false);
   const [coordinates, setCoordinates] = useState({ latitude: null, longitude: null });
+  const [token, setToken] = useState(null);
+
   
   const [formData, setFormData] = useState({
     waste_type: '',
@@ -21,6 +25,39 @@ export default function Report() {
     longitude: null
   });
 
+
+    // Fetch user reports
+    // Fetch token first and then trigger the API call
+  useEffect(() => {
+    const fetchToken = async () => {
+      const fetchedToken = await getToken();
+      if (fetchedToken) setToken(fetchedToken);
+    };
+
+    fetchToken();
+  }, [getToken]); // Runs when `getToken` changes
+
+  // Fetch reports only when the token is available
+  useEffect(() => {
+    if (!token) return; // Wait for token
+
+    const fetchReports = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get("http://localhost:5000/api/reports/user", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setReports(response.data);
+      } catch (err) {
+        console.error("Error fetching reports:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReports();
+  }, [token]); // Runs only when token is set
   // Get current location when toggle is switched
   useEffect(() => {
     if (useCurrentLocation) {
@@ -143,6 +180,131 @@ export default function Report() {
       setIsSubmitting(false);
     }
   };
+
+
+
+
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all');
+  const [page, setPage] = useState(1);
+  const reportsPerPage = 6;
+
+  // Icons mapping for different waste types
+  const wasteTypeIcons = {
+    plastic: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+      </svg>
+    ),
+    paper: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    ),
+    glass: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+      </svg>
+    ),
+    electronic: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+    hazardous: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+    ),
+    construction: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+      </svg>
+    ),
+    organic: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+      </svg>
+    ),
+    metal: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+      </svg>
+    ),
+    other: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    )
+  };
+
+  // Status badge styles
+  const statusStyles = {
+    pending: "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300",
+    accepted: "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300"
+  };
+
+  // Format date
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+      const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+      if (diffHours === 0) {
+        return 'Just now';
+      }
+      return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    } else if (diffDays === 1) {
+      return 'Yesterday';
+    } else if (diffDays < 7) {
+      return `${diffDays} days ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
+  };
+
+  // Get filtered reports
+  const getFilteredReports = () => {
+    if (filter === 'all') {
+      return reports;
+    }
+    return reports.filter(report => report.status === filter);
+  };
+
+  // Get paginated reports
+  const getPaginatedReports = () => {
+    const filteredReports = getFilteredReports();
+    const startIndex = (page - 1) * reportsPerPage;
+    return filteredReports.slice(startIndex, startIndex + reportsPerPage);
+  };
+
+  // Calculate total pages
+  const totalPages = Math.ceil(getFilteredReports().length / reportsPerPage);
+
+
+
+  // Handle filter change
+  const handleFilterChange = (newFilter) => {
+    setFilter(newFilter);
+    setPage(1); // Reset to first page when filter changes
+  };
+
+  // Handle page change
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+  };
+
+
+
+
+// Calculate statistics
+const totalCoins = reports.reduce((sum, report) => sum + report.coinsEarned, 0);
+const pendingReports = reports.filter(report => report.status === 'pending').length;
+const acceptedReports = reports.filter(report => report.status === 'accepted').length;
   return (
      <>
 
@@ -653,265 +815,229 @@ export default function Report() {
 
 
     
-    {/* Recent Reports */}
-    <div className="mt-16">
-      <h3 className="text-2xl font-bold text-gray-800 dark:text-white text-center mb-8">
-        Recent Community Reports
+    <div className="mt-8">
+      <h3 className="text-2xl font-bold text-gray-800 dark:text-white text-center mb-4">
+        Your Waste Reports
       </h3>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Report 1 */}
-        <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-md overflow-hidden">
-          <div className="h-48 bg-gray-200 dark:bg-neutral-700 flex items-center justify-center">
-            <div className="text-center p-6">
-              <div className="w-16 h-16 bg-teal-100 dark:bg-teal-900 rounded-full flex items-center justify-center mx-auto mb-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-teal-600 dark:text-teal-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              <p className="text-gray-500 dark:text-gray-400">
-                Image of waste report
-              </p>
+      
+      {/* Stats cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-md p-4">
+          <div className="flex items-center">
+            <div className="bg-teal-100 dark:bg-teal-900 p-3 rounded-full">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
             </div>
-          </div>
-          <div className="p-4">
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="font-semibold text-gray-800 dark:text-white">
-                Beach Cleanup Needed
-              </h4>
-              <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300 rounded-full text-xs">
-                Pending
-              </span>
-            </div>
-            <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">
-              Plastic waste and discarded fishing gear collected along the
-              shoreline, approximately 15kg.
-            </p>
-            <div className="text-xs text-gray-500 dark:text-gray-400 flex justify-between">
-              <span className="flex items-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-                Seaside Park
-              </span>
-              <span className="flex items-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                2 hours ago
-              </span>
+            <div className="ml-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total Reports</p>
+              <p className="text-lg font-semibold text-gray-800 dark:text-white">{reports.length}</p>
             </div>
           </div>
         </div>
-        {/* Report 2 */}
-        <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-md overflow-hidden">
-          <div className="h-48 bg-gray-200 dark:bg-neutral-700 flex items-center justify-center">
-            <div className="text-center p-6">
-              <div className="w-16 h-16 bg-teal-100 dark:bg-teal-900 rounded-full flex items-center justify-center mx-auto mb-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-teal-600 dark:text-teal-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-              </div>
-              <p className="text-gray-500 dark:text-gray-400">
-                Image of waste report
-              </p>
+        
+        <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-md p-4">
+          <div className="flex items-center">
+            <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded-full">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
-          </div>
-          <div className="p-4">
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="font-semibold text-gray-800 dark:text-white">
-                Illegal Dumping Site
-              </h4>
-              <span className="px-2 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-300 rounded-full text-xs">
-                Urgent
-              </span>
-            </div>
-            <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">
-              Construction waste dumped near residential area, includes
-              potentially hazardous materials.
-            </p>
-            <div className="text-xs text-gray-500 dark:text-gray-400 flex justify-between">
-              <span className="flex items-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-                Riverside Area
-              </span>
-              <span className="flex items-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                Yesterday
-              </span>
+            <div className="ml-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total Coins Earned</p>
+              <p className="text-lg font-semibold text-gray-800 dark:text-white">{totalCoins}</p>
             </div>
           </div>
         </div>
-        {/* Report 3 */}
-        <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-md overflow-hidden">
-          <div className="h-48 bg-gray-200 dark:bg-neutral-700 flex items-center justify-center">
-            <div className="text-center p-6">
-              <div className="w-16 h-16 bg-teal-100 dark:bg-teal-900 rounded-full flex items-center justify-center mx-auto mb-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-teal-600 dark:text-teal-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-              </div>
-              <p className="text-gray-500 dark:text-gray-400">
-                Image of waste report
-              </p>
+        
+        <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-md p-4">
+          <div className="flex items-center">
+            <div className="bg-green-100 dark:bg-green-900 p-3 rounded-full">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
-          </div>
-          <div className="p-4">
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="font-semibold text-gray-800 dark:text-white">
-                Park Litter Collection
-              </h4>
-              <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 rounded-full text-xs">
-                Cleaned
-              </span>
-            </div>
-            <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">
-              Mixed waste collected from central park area, mostly food
-              containers and plastic bottles.
-            </p>
-            <div className="text-xs text-gray-500 dark:text-gray-400 flex justify-between">
-              <span className="flex items-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-                Central Park
-              </span>
-              <span className="flex items-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 mr-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                3 days ago
-              </span>
+            <div className="ml-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Accepted Reports</p>
+              <p className="text-lg font-semibold text-gray-800 dark:text-white">{acceptedReports} of {reports.length}</p>
             </div>
           </div>
         </div>
       </div>
+      
+      {/* Filter tabs */}
+      <div className="flex justify-center mb-6">
+        <div className="inline-flex rounded-md shadow-sm bg-gray-100 dark:bg-neutral-800 p-1">
+          <button
+            onClick={() => handleFilterChange('all')}
+            className={`px-4 py-2 text-sm font-medium rounded-md ${
+              filter === 'all'
+                ? 'bg-teal-600 text-white'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-neutral-700'
+            }`}
+          >
+            All Reports
+          </button>
+          <button
+            onClick={() => handleFilterChange('pending')}
+            className={`px-4 py-2 text-sm font-medium rounded-md ${
+              filter === 'pending'
+                ? 'bg-teal-600 text-white'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-neutral-700'
+            }`}
+          >
+            Pending ({pendingReports})
+          </button>
+          <button
+            onClick={() => handleFilterChange('accepted')}
+            className={`px-4 py-2 text-sm font-medium rounded-md ${
+              filter === 'accepted'
+                ? 'bg-teal-600 text-white'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-neutral-700'
+            }`}
+          >
+            Accepted ({acceptedReports})
+          </button>
+        </div>
+      </div>
+      
+      {/* Reports grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {getPaginatedReports().map((report) => (
+          <div key={report._id} className="bg-white dark:bg-neutral-800 rounded-xl shadow-md overflow-hidden transition-transform hover:transform hover:scale-[1.02]">
+            <div className="h-48 bg-gray-200 dark:bg-neutral-700 flex items-center justify-center">
+              <div className="text-center p-6">
+                <div className="w-16 h-16 bg-teal-100 dark:bg-teal-900 rounded-full flex items-center justify-center mx-auto mb-3">
+                  {wasteTypeIcons[report.waste_type] || wasteTypeIcons.default}
+                </div>
+                <p className="text-gray-500 dark:text-gray-400">
+                  {report.waste_type.charAt(0).toUpperCase() + report.waste_type.slice(1)} Waste
+                </p>
+              </div>
+            </div>
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-2">
+                <h4 className="font-semibold text-gray-800 dark:text-white">
+                  {report.location_type.charAt(0).toUpperCase() + report.location_type.slice(1)} Waste
+                </h4>
+                <div className="flex items-center">
+                  <span className={`px-2 py-1 ${statusStyles[report.status]} rounded-full text-xs mr-2`}>
+                    {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
+                  </span>
+                  {report.coinsEarned > 0 && (
+                    <span className="flex items-center bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-full text-xs">
+                      +{report.coinsEarned} coins
+                    </span>
+                  )}
+                </div>
+              </div>
+              <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">
+                {report.description}
+              </p>
+              <div className="text-xs text-gray-500 dark:text-gray-400 flex justify-between">
+                <span className="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  {report.location}
+                </span>
+                <span className="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {formatDate(report.reportedAt)}
+                </span>
+              </div>
+              <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
+                <span className="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                  </svg>
+                  Quantity: {report.estimated_quantity.charAt(0).toUpperCase() + report.estimated_quantity.slice(1)}
+                </span>
+              </div>
+              
+              {/* View details link */}
+              <div className="mt-4 flex justify-end">
+                <a 
+                  href={`/reports/${report._id}`} 
+                  className="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 text-sm font-medium flex items-center"
+                >
+                  View Details
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      {/* Empty state for filtered results */}
+      {getFilteredReports().length === 0 && (
+        <div className="bg-gray-50 dark:bg-neutral-800/50 border border-gray-200 dark:border-neutral-700 p-6 rounded-lg text-center mt-4">
+          <p className="text-gray-600 dark:text-gray-400">No {filter} reports found.</p>
+        </div>
+      )}
+      
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-8">
+          <nav className="flex items-center space-x-2">
+            <button
+              onClick={() => handlePageChange(page - 1)}
+              disabled={page === 1}
+              className={`p-2 rounded-md ${
+                page === 1
+                  ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-700'
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+              <button
+                key={pageNum}
+                onClick={() => handlePageChange(pageNum)}
+                className={`px-4 py-2 rounded-md ${
+                  page === pageNum
+                    ? 'bg-teal-600 text-white'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-700'
+                }`}
+              >
+                {pageNum}
+              </button>
+            ))}
+            
+            <button
+              onClick={() => handlePageChange(page + 1)}
+              disabled={page === totalPages}
+              className={`p-2 rounded-md ${
+                page === totalPages
+                  ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-700'
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </nav>
+        </div>
+      )}
+      
+      {/* Create new report button */}
       <div className="text-center mt-8">
         <a
-          href="#"
-          className="inline-flex items-center px-5 py-3 border border-teal-600 dark:border-teal-500 text-teal-600 dark:text-teal-500 hover:bg-teal-50 dark:hover:bg-teal-900/20 font-medium rounded-lg transition duration-300"
+          href="/report"
+          className="inline-flex items-center px-5 py-3 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition duration-300"
         >
-          View All Reports
+          Create New Report
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="ml-2 h-5 w-5"
@@ -923,7 +1049,7 @@ export default function Report() {
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
-              d="M14 5l7 7m0 0l-7 7m7-7H3"
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
             />
           </svg>
         </a>
