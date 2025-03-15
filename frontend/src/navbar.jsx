@@ -3,6 +3,7 @@ import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-reac
 import { Link } from 'react-router-dom';
 import DarkModeToggle from "./DarkModeToggle";
 
+
 export default function navbar() {
   return (
     <div>
@@ -102,14 +103,14 @@ export default function navbar() {
   </Link>
         </li>
         <li>
-             <header>
-               <SignedOut className='btnsignin'>
-                 <SignInButton className="bg-[#1e8449] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#166534] active:shadow-lg transition cursor-pointer" />
-               </SignedOut>
-               <SignedIn>
-                 <UserButton />
-               </SignedIn>
-             </header>
+        <header>
+        <SignedOut className='btnsignin'>
+          <SignInButton className="bg-[#1e8449] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#166534] active:shadow-lg transition cursor-pointer" />
+        </SignedOut>
+        <SignedIn>
+          <UserButton />
+        </SignedIn>
+      </header>
         </li>
 
         <DarkModeToggle />

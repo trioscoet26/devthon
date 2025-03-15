@@ -1,13 +1,12 @@
-const express = require('express');
-const { getUserProfile } = require('../controllers/userController');
-const { ClerkExpressRequireAuth } = require('@clerk/clerk-sdk-node');
+import express from "express";
+import { requireAuth, attachUser } from "../middleware/authMiddleware.js";
+import { getCurrentUser, updateUserProfile, addGreenCoins } from "../controllers/userController.js";
 
 const router = express.Router();
 
-// Protect all routes with Clerk authentication
-router.use(ClerkExpressRequireAuth());
+// ✅ Protected routes
+router.get("/me", requireAuth, attachUser, getCurrentUser);
+router.put("/profile", requireAuth, attachUser, updateUserProfile);
+router.post("/green-coins", requireAuth, attachUser, addGreenCoins);
 
-// User routes
-router.get('/profile', getUserProfile);
-
-module.exports = router;
+export default router;

@@ -4,6 +4,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { ClerkExpressWithAuth } from '@clerk/clerk-sdk-node';
 import reportRoutes from './routes/reportRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import listingRoutes from './routes/listingRoutes.js';
+
 
 // Load environment variables
 dotenv.config();
@@ -25,6 +28,8 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Routes
 app.use('/api/reports', reportRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/listings', listingRoutes);
 
 // Basic health check route
 app.get('/', (req, res) => {

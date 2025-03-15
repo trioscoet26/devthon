@@ -1,34 +1,55 @@
-import User from "../models/userModel.js";
+import User from "../models/User.js";
 
-export const save = async (req, res) => {
+// ✅ Get current user profile
+export const getCurrentUser = async (req, res) => {
   try {
-    const { type, data } = req.body; // Get event type and user data
-
-    if (type === "user.created") {
-      const { id, first_name, last_name, email_addresses } = data;
-
-      const email = email_addresses[0]?.email_address;
-
-      // Check if user already exists
-      let user = await User.findOne({ clerkId: id });
-
-      if (!user) {
-        user = new User({
-          clerkId: id,
-          name: `${first_name} ${last_name}`,
-          email,
-          totalCoins: 0,
-          reports: [],
-        });
-
-        await user.save();
-      }
-
-      return res.status(200).json({ message: "User saved successfully", user });
+    if (!req.user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    return res.status(400).json({ message: "Invalid event type" });
+    res.status(200).json(req.user);
   } catch (error) {
-    return res.status(500).json({ message: "Error processing webhook", error: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ✅ Update user profile
+export const updateUserProfile = async (req, res) => {
+  try {
+    const { username, email, displayName, location, profileImageUrl } = req.body;
+
+    if (!req.user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (username) req.user.username = username;
+    if (email) req.user.email = email;
+    if (displayName) req.user.displayName = displayName;
+    if (location) req.user.location = location;
+    if (profileImageUrl) req.user.profileImageUrl = profileImageUrl;
+
+    await req.user.save();
+
+    res.status(200).json(req.user);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ✅ Add green coins to user
+export const addGreenCoins = async (req, res) => {
+  try {
+    const { amount } = req.body;
+
+    if (!req.user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    req.user.greenCoins += parseInt(amount);
+    await req.user.save();
+
+    res.status(200).json({ greenCoins: req.user.greenCoins });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
