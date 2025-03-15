@@ -6,6 +6,11 @@ import Report from './report'; // Adjust the path as needed
 import Reward from './reward'; // Adjust the path as needed
 import Marketplace from './marketplace';
 import { ClerkProvider,useUser } from '@clerk/clerk-react';
+import AdminLogin from './adminLogin';
+import AdminDashboard from './adminDashboard';
+import "./index.css";  
+
+
 function App() {
   const {user} = useUser();
 
@@ -22,6 +27,8 @@ function App() {
         <Route path="/report" element={<Report />} />
         <Route path="/reward" element={<Reward />} />
         <Route path="/marketplace" element={<Marketplace />} />
+        <Route path="/admin" element={<AdminLogin />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
       </Routes>
       <Footer />
 
