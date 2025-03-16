@@ -8,5 +8,4 @@ const router = express.Router();
 router.get("/me", requireAuth, attachUser, getCurrentUser);
 router.put("/profile", requireAuth, attachUser, updateUserProfile);
 router.post("/green-coins", requireAuth, attachUser, addGreenCoins);
-
 export default router;

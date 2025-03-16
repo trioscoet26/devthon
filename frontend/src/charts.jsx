@@ -142,14 +142,14 @@ const Charts = () => {
     }, []);
 
     return (
-        <div className="flex flex-wrap justify-center gap-6 p-6 bg-gray-900 text-white">
+        <div className="flex flex-wrap justify-center gap-6 p-6 bg-gray-900 text-white ">
             <div className="w-full md:w-1/2 lg:w-1/3 p-4 bg-gray-800 rounded-lg shadow-md">
-                <h2 className="text-lg font-semibold text-center mb-4">Waste Type Distribution</h2>
+                <h2 className="text-lg font-semibold text-center mb-4 mt-12">Waste Type Distribution</h2>
                 {wasteTypeData ? <Pie data={wasteTypeData} /> : <p className="text-center">Loading...</p>}
             </div>
 
             <div className="w-full md:w-1/2 lg:w-1/3 p-4 bg-gray-800 rounded-lg shadow-md">
-                <h2 className="text-lg font-semibold text-center mb-4">Location Type Distribution</h2>
+                <h2 className="text-lg font-semibold text-center mb-4 mt-12">Location Type Distribution</h2>
                 {locationPieData ? <Pie data={locationPieData} /> : <p className="text-center">Loading...</p>}
             </div>
 
