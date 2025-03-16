@@ -7,7 +7,7 @@ import reportRoutes from './routes/reportRoutes.js';
 import chartRoutes from "./routes/chartRoutes.js";
 import userRoutes from './routes/userRoutes.js';
 import listingRoutes from './routes/listingRoutes.js';
-
+import allUserRoutes from './routes/allUserRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -25,14 +25,16 @@ app.use(ClerkExpressWithAuth());
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
+.then(() => console.log('Connected to MongoDB'))
+.catch(err => console.error('MongoDB connection error:', err));
 
 // Routes
+app.use("/api/reports/:id/:status",reportRoutes);
 app.use('/api/reports', reportRoutes);
 app.use("/api/charts", chartRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/listings', listingRoutes);
+app.use("/api/allusers", allUserRoutes);
 
 // Basic health check route
 app.get('/', (req, res) => {

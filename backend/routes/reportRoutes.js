@@ -35,6 +35,6 @@ router.put('/:id', requireAuth, updateReport);
 router.delete('/:id', requireAuth, deleteReport);
 
 // Update report status (potentially admin-only)
-router.patch('/:id/status', requireAuth, updateReportStatus);
+router.put('/:id/:status', updateReportStatus);
 
 export default router;
