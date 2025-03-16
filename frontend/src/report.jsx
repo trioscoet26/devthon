@@ -43,7 +43,7 @@ const customIcon = new L.Icon({
 });
 
 // Component to handle map centering and updates
-const MapController = ({ coordinates, setCoordinates, locateMe, resetLocateMe }) => {
+const MapController = ({ coordinates, setCoordinates, locateMe, resetLocateMe, setFormData }) => {
   const map = useMap();
   
   // Handle location button click
@@ -60,7 +60,11 @@ const MapController = ({ coordinates, setCoordinates, locateMe, resetLocateMe })
   // Handle map events
   useMapEvents({
     locationfound(e) {
-      setCoordinates({ latitude: e.latlng.lat, longitude: e.latlng.lng });
+      const latitude = e.latlng.lat;
+      const longitude = e.latlng.lng;
+      setCoordinates({ latitude, longitude });
+      // Update form data with new coordinates
+      setFormData(prev => ({ ...prev, latitude, longitude }));
       map.flyTo(e.latlng, 16);
     },
     locationerror(e) {
@@ -69,7 +73,11 @@ const MapController = ({ coordinates, setCoordinates, locateMe, resetLocateMe })
       resetLocateMe();
     },
     click(e) {
-      setCoordinates({ latitude: e.latlng.lat, longitude: e.latlng.lng });
+      const latitude = e.latlng.lat;
+      const longitude = e.latlng.lng;
+      setCoordinates({ latitude, longitude });
+      // Update form data with new coordinates
+      setFormData(prev => ({ ...prev, latitude, longitude }));
     }
   });
   
@@ -306,6 +314,7 @@ const resetLocateMe = () => {
 
 
 // Function to handle location search
+// Function to handle location search
 const handleGeocoding = async (e) => {
   if (e) e.preventDefault(); // Prevent form submission
   
@@ -321,15 +330,19 @@ const handleGeocoding = async (e) => {
     const data = await response.json();
     
     if (data && data.length > 0) {
-      const { lat, lon } = data[0];
+      const latitude = parseFloat(data[0].lat);
+      const longitude = parseFloat(data[0].lon);
       
       // Update coordinates
       setCoordinates({
-        latitude: parseFloat(lat), 
-        longitude: parseFloat(lon)
+        latitude,
+        longitude
       });
       
-      console.log("Search successful:", { lat, lon });
+      // Update form data with new coordinates
+      setFormData(prev => ({ ...prev, latitude, longitude }));
+      
+      console.log("Search successful:", { latitude, longitude });
     } else {
       setError('Location not found. Please try a different address or select on map.');
     }
@@ -663,23 +676,24 @@ const acceptedReports = reports.filter(report => report.status === 'accepted').l
   {/* Map Container */}
   <div className="mt-3 mb-4 ">
     <div style={{ height: '300px', width: '100%', borderRadius: '8px', overflow: 'hidden' }}>
-      <MapContainer 
-        center={coordinates.latitude && coordinates.longitude ? [coordinates.latitude, coordinates.longitude] : [28.7041, 77.1025]}
-        zoom={13} 
-        style={{ height: '100%', width: '100%' }}
-        className="h-full w-full z-10"
-      >
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        <MapController 
-          coordinates={coordinates}
-          setCoordinates={setCoordinates}
-          locateMe={locateMe}
-          resetLocateMe={resetLocateMe}
-        />
-        {coordinates.latitude && coordinates.longitude && (
-          <Marker position={[coordinates.latitude, coordinates.longitude]} icon={customIcon} />
-        )}
-      </MapContainer>
+    <MapContainer 
+      center={coordinates.latitude && coordinates.longitude ? [coordinates.latitude, coordinates.longitude] : [28.7041, 77.1025]}
+      zoom={13} 
+      style={{ height: '100%', width: '100%' }}
+      className="h-full w-full z-10"
+    >
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <MapController 
+        coordinates={coordinates}
+        setCoordinates={setCoordinates}
+        locateMe={locateMe}
+        resetLocateMe={resetLocateMe}
+        setFormData={setFormData}
+      />
+      {coordinates.latitude && coordinates.longitude && (
+        <Marker position={[coordinates.latitude, coordinates.longitude]} icon={customIcon} />
+      )}
+    </MapContainer>
     </div>
     <div className="flex items-center justify-between bg-gray-50 dark:bg-neutral-700 p-3 rounded-lg mt-3">
         <div className="flex items-center gap-2">
