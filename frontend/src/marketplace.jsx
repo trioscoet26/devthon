@@ -2,237 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth ,useClerk } from '@clerk/clerk-react';
 import { Link } from 'react-router-dom';
-
-
-
-
-
-
-
-// const NewListingModal = ({ isOpen, onClose, onSave }) => {
-//   const [formData, setFormData] = useState({
-//     title: '',
-//     description: '',
-//     materialType: 'Plastic',
-//     quantity: 0,
-//     unit: 'kg',
-//     price: 0,
-//     location: '',
-//     isInDemand: false,
-//   });
-//   const [submitting, setSubmitting] = useState(false);
-//     const { getToken } = useAuth();
-//     const [token, setToken] = useState(null);
-  
-//       // Fetch user reports
-//       // Fetch token first and then trigger the API call
-//     useEffect(() => {
-//       const fetchToken = async () => {
-//         const fetchedToken = await getToken();
-//         if (fetchedToken) setToken(fetchedToken);
-//       };
-  
-//       fetchToken();
-//     }, [getToken]); 
-//   const handleChange = (e) => {
-//     const { name, value, type, checked } = e.target;
-//     setFormData({
-//       ...formData,
-//       [name]: type === 'checkbox' ? checked : value
-//     });
-//   };
-  
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     setSubmitting(true);
-    
-//     try {
-//       const authToken = await getToken();
-//       const response = await axios.post('http://localhost:5000/api/listings', formData);
-//       formData,
-//       {
-//         headers: {
-//           'Authorization': `Bearer ${authToken}`        }
-//       }
-//       onSave(response.data);
-//       onClose();
-//     } catch (error) {
-//       console.error('Error creating listing:', error);
-//       alert('Failed to create listing. Please try again.');
-//     } finally {
-//       setSubmitting(false);
-//     }
-//   };
-  
-//   if (!isOpen) return null;
-  
-//   return (
-//     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-//       <div className="bg-white dark:bg-neutral-800 rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-//         <div className="bg-amber-600 dark:bg-amber-700 p-4 text-white">
-//           <h3 className="text-xl font-semibold">New Recyclable Material Listing</h3>
-//         </div>
-        
-//         <form onSubmit={handleSubmit} className="p-6">
-//           <div className="mb-4">
-//             <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
-//               Title
-//             </label>
-//             <input
-//               type="text"
-//               name="title"
-//               value={formData.title}
-//               onChange={handleChange}
-//               className="w-full px-3 py-2 bg-gray-100 dark:bg-neutral-700 text-gray-700 dark:text-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-//               required
-//             />
-//           </div>
-          
-//           <div className="mb-4">
-//             <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
-//               Description
-//             </label>
-//             <textarea
-//               name="description"
-//               value={formData.description}
-//               onChange={handleChange}
-//               className="w-full px-3 py-2 bg-gray-100 dark:bg-neutral-700 text-gray-700 dark:text-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-//               rows="3"
-//               required
-//             ></textarea>
-//           </div>
-          
-//           <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-//             <div>
-//               <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
-//                 Material Type
-//               </label>
-//               <select
-//                 name="materialType"
-//                 value={formData.materialType}
-//                 onChange={handleChange}
-//                 className="w-full px-3 py-2 bg-gray-100 dark:bg-neutral-700 text-gray-700 dark:text-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-//                 required
-//               >
-//                 <option>Plastic</option>
-//                 <option>Paper</option>
-//                 <option>Metal</option>
-//                 <option>Glass</option>
-//                 <option>Electronics</option>
-//                 <option>Organic</option>
-//                 <option>Other</option>
-//               </select>
-//             </div>
-            
-//             <div>
-//               <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
-//                 Location
-//               </label>
-//               <input
-//                 type="text"
-//                 name="location"
-//                 value={formData.location}
-//                 onChange={handleChange}
-//                 className="w-full px-3 py-2 bg-gray-100 dark:bg-neutral-700 text-gray-700 dark:text-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-//                 required
-//               />
-//             </div>
-//           </div>
-          
-//           <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-//             <div>
-//               <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
-//                 Quantity
-//               </label>
-//               <input
-//                 type="number"
-//                 name="quantity"
-//                 value={formData.quantity}
-//                 onChange={handleChange}
-//                 className="w-full px-3 py-2 bg-gray-100 dark:bg-neutral-700 text-gray-700 dark:text-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-//                 min="0"
-//                 required
-//               />
-//             </div>
-            
-//             <div>
-//               <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
-//                 Unit
-//               </label>
-//               <select
-//                 name="unit"
-//                 value={formData.unit}
-//                 onChange={handleChange}
-//                 className="w-full px-3 py-2 bg-gray-100 dark:bg-neutral-700 text-gray-700 dark:text-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-//                 required
-//               >
-//                 <option>kg</option>
-//                 <option>g</option>
-//                 <option>ton</option>
-//                 <option>lb</option>
-//                 <option>oz</option>
-//                 <option>units</option>
-//                 <option>pcs</option>
-//               </select>
-//             </div>
-            
-//             <div>
-//               <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
-//                 Price (GreenCoins)
-//               </label>
-//               <input
-//                 type="number"
-//                 name="price"
-//                 value={formData.price}
-//                 onChange={handleChange}
-//                 className="w-full px-3 py-2 bg-gray-100 dark:bg-neutral-700 text-gray-700 dark:text-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-//                 min="0"
-//                 required
-//               />
-//             </div>
-//           </div>
-          
-//           <div className="mb-6">
-//             <label className="flex items-center">
-//               <input
-//                 type="checkbox"
-//                 name="isInDemand"
-//                 checked={formData.isInDemand}
-//                 onChange={handleChange}
-//                 className="h-4 w-4 text-amber-600 focus:ring-amber-500"
-//               />
-//               <span className="ml-2 text-gray-700 dark:text-gray-300 text-sm">
-//                 Mark as "In Demand" (for high demand materials)
-//               </span>
-//             </label>
-//           </div>
-          
-//           <div className="flex justify-end space-x-3">
-//             <button
-//               type="button"
-//               onClick={onClose}
-//               className="px-4 py-2 bg-gray-200 dark:bg-neutral-600 text-gray-700 dark:text-gray-300 rounded-md text-sm font-medium transition duration-300"
-//               disabled={submitting}
-//             >
-//               Cancel
-//             </button>
-//             <button
-//               type="submit"
-//               className={`px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-md text-sm font-medium transition duration-300 ${
-//                 submitting ? 'opacity-75 cursor-not-allowed' : ''
-//               }`}
-//               disabled={submitting}
-//             >
-//               {submitting ? 'Saving...' : 'Create Listing'}
-//             </button>
-//           </div>
-//         </form>
-//       </div>
-//     </div>
-//   );
-// };
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function Marketplace() {
   const [listings, setListings] = useState([]);
@@ -240,7 +13,11 @@ export default function Marketplace() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const [purchasedItems, setPurchasedItems] = useState([]);
+  const [purchasedListings, setPurchasedListings] = useState([]);
+  const [discountCoins, setDiscountCoins] = useState({});
+const [finalPrices, setFinalPrices] = useState({});
+const { getToken } = useAuth(); // Assuming you have an auth context with user info
   // Fetch listings based on filters
   const fetchListings = async () => {
     try {
@@ -256,6 +33,12 @@ export default function Marketplace() {
       }
       
       const response = await axios.get('http://localhost:5000/api/listings', { params });
+   
+      const initialFinalPrices = {};
+      response.data.forEach(listing => {
+        initialFinalPrices[listing._id] = listing.amount;
+      });
+      setFinalPrices(initialFinalPrices);
       setListings(response.data);
       setError(null);
     } catch (err) {
@@ -265,11 +48,77 @@ export default function Marketplace() {
       setLoading(false);
     }
   };
+// Function to update listing price based on user-entered GreenCoins
+const updateListingPrice = (listingId, coins) => {
+  const safeCoins = parseInt(coins) || 0;
+  
+  // Update the discount coins state
+  setDiscountCoins(prev => ({
+    ...prev,
+    [listingId]: safeCoins
+  }));
+  
+  // Calculate final price based on new discount
+  const listing = listings.find(l => l._id === listingId);
+  if (listing) {
+    setFinalPrices(prev => ({
+      ...prev,
+      [listingId]: Math.max(0, listing.amount - safeCoins)
+    }));
+    
+    // Update the API
+  }
+};
+
+
+ // Update the handleDiscountChange function to also update the listing price API
+const handleDiscountChange = (listingId, coins, maxCoins) => {
+  // Ensure discount doesn't exceed available coins or item price
+  const safeCoins = Math.min(Math.max(0, coins), maxCoins);
+  
+  // Update discount coins for this specific listing
+  setDiscountCoins(prev => ({
+    ...prev,
+    [listingId]: safeCoins
+  }));
+  
+  // Recalculate final price
+  const listing = listings.find(item => item._id === listingId);
+  if (listing) {
+    const newFinalPrice = Math.max(0, listing.amount - safeCoins);
+    setFinalPrices(prev => ({
+      ...prev,
+      [listingId]: newFinalPrice
+    }));
+    
+    // Update the listing price in the API
+  }
+};
+// const updateListingPriceAPI = async (listingId, coins) => {
+//   try {
+//     const token = await getToken();
+//     const response = await axios.patch(
+//       `http://localhost:5000/api/listings/${listingId}`,
+//       { price: parseInt(coins) || 0 },
+//       {
+//         headers: { 
+//           'Authorization': `Bearer ${token}`
+//         }
+//       }
+//     );
+    
+//     console.log('Successfully updated listing price:', response.data);
+    
+//   } catch (error) {
+//     console.error('Error updating listing price:', error);
+//     toast.error('Failed to update listing price. Please try again.');
+//   }
+// };
 
   // Initial fetch and when filters change
   useEffect(() => {
     fetchListings();
-  }, [materialType, search]);
+  }, [materialType, search ]);
 
   // Handle search input with debounce
   const handleSearchChange = (e) => {
@@ -347,6 +196,85 @@ export default function Marketplace() {
     // Trigger a refresh of listings
     setRefreshTrigger(prev => prev + 1);
   };
+
+  const fetchPurchasedItems = async () => {
+    try {
+      const token = await getToken();
+      
+      const response = await axios.get('http://localhost:5000/api/listings/purchased', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setPurchasedListings(response.data);
+      setPurchasedItems(response.data.map(item => item._id));
+    } catch (error) {
+      console.error('Error fetching purchased items:', error);
+    }
+  };
+  
+  // Add this to your useEffect to fetch purchased items on load
+  useEffect(() => {
+    fetchListings();
+    fetchPurchasedItems();
+  }, [materialType, search, refreshTrigger]);
+
+  const handlePurchase = async (listingId, finalPrice) => {
+    try {
+      const token = await getToken();
+      
+      // Add the listing ID to purchased items
+      setPurchasedItems(prev => [...prev, listingId]);
+      
+      // Get the discount coins for this purchase
+      const coinsUsed = discountCoins[listingId] || 0;
+      
+      console.log(`Purchasing item ${listingId} for Rs. ${finalPrice} with ${coinsUsed} GreenCoins discount`);
+      
+      // Send request to purchase the item and deduct coins
+      const response = await axios.post(
+        'http://localhost:5000/api/listings/purchase',
+        { 
+          listingId,
+          price: coinsUsed
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      
+      // Show success message
+      toast.success('Item purchased successfully!');
+      try {
+        const token = await getToken();
+        const response = await axios.patch(
+          `http://localhost:5000/api/listings/${listingId}`,
+          { price: parseInt(coinsUsed) || 0 },
+          {
+            headers: { 
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
+        
+        console.log('Successfully updated listing price:', response.data);
+        
+      } catch (error) {
+        console.error('Error updating listing price:', error);
+        toast.error('Failed to update listing price. Please try again.');
+      }
+      // Refresh listings and purchased items
+      fetchListings();
+      fetchPurchasedItems();
+      
+    } catch (error) {
+      console.error('Error purchasing item:', error);
+      
+      // Remove from purchased items if there was an error
+      setPurchasedItems(prev => prev.filter(id => id !== listingId));
+      
+      toast.error(error.response?.data?.message || 'Failed to purchase item. Please try again.');
+    }
+  };
+  
   return (
     <div>
 <section
@@ -476,7 +404,9 @@ export default function Marketplace() {
             No listings found. Try changing your filters.
           </div>
         ) : (
-          listings.map((listing) => (
+          listings
+          .filter(listing => !purchasedItems.includes(listing._id))
+          .map((listing) => (
             <div key={listing._id} className="bg-white dark:bg-neutral-700 p-4 rounded-lg mb-3 shadow-sm hover:shadow-md transition duration-300">
               <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
                 <div className="bg-amber-100 dark:bg-amber-900 p-3 rounded-md">
@@ -537,23 +467,34 @@ export default function Marketplace() {
                       </svg>
                       Posted {formatDate(listing.createdAt)}
                     </span>
-                    <span className="flex items-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 mr-1"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      {listing.price} GreenCoins
-                    </span>
+                 {/* GreenCoin Input - Update this section */}
+<div className="flex justify-between items-center mb-2">
+  <label htmlFor={`coins-${listing._id}`} className="text-gray-700 dark:text-gray-300">
+    Apply GreenCoins:
+  </label>
+  <div className="flex items-center">
+    <input
+      id={`coins-${listing._id}`}
+      type="number"
+      min="0"
+      max={listing.price} // Maximum coins should be limited
+      value={discountCoins[listing._id] || 0}
+      onChange={(e) => handleDiscountChange(listing._id, parseInt(e.target.value), listing.price)}
+      className="w-16 p-1 border border-gray-300 dark:border-gray-600 rounded text-center mr-2"
+    />
+    <span className="text-sm">/ {listing.price} available</span>
+  </div>
+</div>
+
+{/* Updated pricing display */}
+<div className="flex justify-between items-center font-bold">
+  <span className="text-gray-700 dark:text-gray-300">Final Price:</span>
+  <span className="text-amber-600 dark:text-amber-400">
+    Rs. {finalPrices[listing._id] || listing.amount}
+    {(discountCoins[listing._id] && discountCoins[listing._id] > 0) && 
+      ` (${discountCoins[listing._id]} GreenCoins applied)`}
+  </span>
+</div>
                     <span className="flex items-center">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -574,40 +515,27 @@ export default function Marketplace() {
                   </div>
                 </div>
                 <div className="mt-4 md:mt-0">
-                  <button className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-md text-sm font-medium transition duration-300">
-                    Contact Seller
-                  </button>
-                </div>
+               {/* Updated purchase button */}
+<button 
+  className={`px-4 py-2 ${
+    purchasedItems.includes(listing._id) 
+      ? 'bg-green-600 hover:bg-green-700' 
+      : 'bg-amber-600 hover:bg-amber-700'
+  } text-white rounded-md text-sm font-medium transition duration-300`}
+  onClick={() => !purchasedItems.includes(listing._id) && handlePurchase(listing._id, finalPrices[listing._id] || listing.amount)}
+  disabled={purchasedItems.includes(listing._id)}
+>
+  {purchasedItems.includes(listing._id) 
+    ? 'Purchased' 
+    : `Buy for Rs. ${finalPrices[listing._id] || listing.amount}`}
+</button>
+</div>
               </div>
             </div>
           ))
         )}
       </div>
     </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
       {/* Marketplace Features */}
       <div className="lg:w-1/3">
@@ -749,6 +677,60 @@ export default function Marketplace() {
         </div>
       </div>
     </div>
+
+    {/* Purchased Items Section */}
+    <div className="lg:w-2/3 mx-auto">
+    <div className="bg-gray-50 dark:bg-neutral-800 rounded-xl shadow-lg overflow-hidden h-full">
+    <div className="bg-green-600 dark:bg-green-700 p-4 text-white">
+      <h3 className="text-xl font-semibold">Your Purchased Items</h3>
+    </div>
+    
+    <div className="overflow-y-auto max-h-[750px] p-4">
+      {purchasedListings.length === 0 ? (
+        <div className="text-center py-10 text-gray-500 dark:text-gray-400">
+          You haven't purchased any items yet.
+        </div>
+      ) : (
+        purchasedListings.map((listing) => (
+          <div key={listing._id} className="bg-white dark:bg-neutral-700 p-4 rounded-lg mb-3 shadow-sm">
+            <div className="flex items-start gap-4">
+              <div className="bg-green-100 dark:bg-green-900 p-2 rounded-md">
+                {getMaterialIcon(listing.materialType)}
+              </div>
+              <div className="flex-grow">
+                <h4 className="text-lg font-semibold text-gray-800 dark:text-white">
+                  {listing.title}
+                </h4>
+                <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">
+                  {listing.description.slice(0, 50)}...
+                </p>
+                <div className="flex flex-wrap items-center text-sm text-gray-500 dark:text-gray-400 gap-2">
+                  <span className="flex items-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 mr-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    {listing.price} GreenCoins
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  </div>
+</div>
     {/* Testimonials & Success Stories */}
     <div className="mt-16">
       <h3 className="text-2xl font-bold text-gray-800 dark:text-white text-center mb-8">
@@ -1016,30 +998,3 @@ export default function Marketplace() {
   )
 }
 
-
-
-
-
-// const MarketplaceContainer = () => {
-//   const [showModal, setShowModal] = useState(false);
-//   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  
-//   const handleSaveNewListing = () => {
-//     // Trigger a refresh of listings
-//     setRefreshTrigger(prev => prev + 1);
-//   };
-  
-//   return (
-//     <>
-//       <div >
-  
-        
-//         <Marketplace key={refreshTrigger} />
-//       </div>
-      
-     
-//     </>
-//   );
-// };
-
-// export default MarketplaceContainer;

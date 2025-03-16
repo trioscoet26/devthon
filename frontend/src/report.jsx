@@ -2,6 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import axios from 'axios';
+import  {useRef } from 'react';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+
+
 
 
 export default function Report() {
@@ -28,6 +35,53 @@ export default function Report() {
   });
 
 
+  // Custom icon to fix missing marker issue
+const customIcon = new L.Icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+// Component to handle map centering and updates
+const MapController = ({ coordinates, setCoordinates, locateMe, resetLocateMe }) => {
+  const map = useMap();
+  
+  // Handle location button click
+  useEffect(() => {
+    if (locateMe) {
+      map.locate({
+        setView: true,
+        maxZoom: 16
+      });
+      resetLocateMe(); // Reset the trigger after attempting to locate
+    }
+  }, [map, locateMe, resetLocateMe]);
+  
+  // Handle map events
+  useMapEvents({
+    locationfound(e) {
+      setCoordinates({ latitude: e.latlng.lat, longitude: e.latlng.lng });
+      map.flyTo(e.latlng, 16);
+    },
+    locationerror(e) {
+      console.error("Location error:", e.message);
+      alert("Could not access your location. Please allow location access or manually select a location on the map.");
+      resetLocateMe();
+    },
+    click(e) {
+      setCoordinates({ latitude: e.latlng.lat, longitude: e.latlng.lng });
+    }
+  });
+  
+  // Update map when coordinates change
+  useEffect(() => {
+    if (coordinates.latitude && coordinates.longitude) {
+      map.flyTo([coordinates.latitude, coordinates.longitude], 16);
+    }
+  }, [map, coordinates]);
+  
+  return null;
+};
     // Fetch user reports
     // Fetch token first and then trigger the API call
   useEffect(() => {
@@ -234,8 +288,58 @@ const handleSubmit = async (e) => {
     setIsSubmitting(false);
   }
 };
+// Add these near your other state declarations
+const [isSearching, setIsSearching] = useState(false);
+const [locateMe, setLocateMe] = useState(false);
+
+// Function to trigger location finding
+const handleLocateMe = () => {
+  setLocateMe(true);
+};
+
+// Function to reset location trigger
+const resetLocateMe = () => {
+  setLocateMe(false);
+};
+
+// Function to handle address change
 
 
+// Function to handle location search
+const handleGeocoding = async (e) => {
+  if (e) e.preventDefault(); // Prevent form submission
+  
+  if (!formData.location.trim()) return;
+  
+  setIsSearching(true);
+  
+  try {
+    // Using Nominatim for geocoding
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.location)}&limit=1`
+    );
+    const data = await response.json();
+    
+    if (data && data.length > 0) {
+      const { lat, lon } = data[0];
+      
+      // Update coordinates
+      setCoordinates({
+        latitude: parseFloat(lat), 
+        longitude: parseFloat(lon)
+      });
+      
+      console.log("Search successful:", { lat, lon });
+    } else {
+      setError('Location not found. Please try a different address or select on map.');
+    }
+  } catch (error) {
+    console.error('Geocoding error:', error);
+    setError('Error finding location. Please try again or select on map.');
+  } finally {
+    setIsSearching(false);
+  }
+};
 
 
   const [reports, setReports] = useState([]);
@@ -519,24 +623,65 @@ const acceptedReports = reports.filter(report => report.status === 'accepted').l
         </div>
       </div>
       
-      <div>
-        <label
-          htmlFor="location-address"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-        >
-          Location Address/Description
-        </label>
-        <input
-          type="text"
-          id="location-address"
-          value={formData.location}
-          onChange={handleAddressChange}
-          placeholder="Enter address or describe the location"
-          className="w-full px-4 py-2 border border-gray-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
-        />
-      </div>
       
-      <div className="flex items-center justify-between bg-gray-50 dark:bg-neutral-700 p-3 rounded-lg">
+      
+      
+      {/* Location Input and Map Section */}
+<div>
+  <label
+    htmlFor="location-address"
+    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+  >
+    Location Address/Description
+  </label>
+  <div className="flex items-center gap-2 mb-2">
+    <input
+      type="text"
+      id="location-address"
+      value={formData.location}
+      onChange={handleAddressChange}
+      placeholder="Enter address or describe the location"
+      className="w-full px-4 py-2 border border-gray-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
+    />
+    <button
+      type="button"
+      onClick={handleGeocoding}
+      disabled={isSearching || !formData.location}
+      className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 disabled:bg-gray-400 flex items-center justify-center"
+    >
+      {isSearching ? (
+        <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      ) : (
+        "Search"
+      )}
+    </button>
+  </div>
+
+  {/* Map Container */}
+  <div className="mt-3 mb-4 ">
+    <div style={{ height: '300px', width: '100%', borderRadius: '8px', overflow: 'hidden' }}>
+      <MapContainer 
+        center={coordinates.latitude && coordinates.longitude ? [coordinates.latitude, coordinates.longitude] : [28.7041, 77.1025]}
+        zoom={13} 
+        style={{ height: '100%', width: '100%' }}
+        className="h-full w-full z-10"
+      >
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <MapController 
+          coordinates={coordinates}
+          setCoordinates={setCoordinates}
+          locateMe={locateMe}
+          resetLocateMe={resetLocateMe}
+        />
+        {coordinates.latitude && coordinates.longitude && (
+          <Marker position={[coordinates.latitude, coordinates.longitude]} icon={customIcon} />
+        )}
+      </MapContainer>
+    </div>
+    <div className="flex items-center justify-between bg-gray-50 dark:bg-neutral-700 p-3 rounded-lg mt-3">
         <div className="flex items-center gap-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -580,7 +725,9 @@ const acceptedReports = reports.filter(report => report.status === 'accepted').l
           Location captured: {coordinates.latitude.toFixed(6)}, {coordinates.longitude.toFixed(6)}
         </div>
       )}
-      
+    </div>
+  </div>  
+
       <div>
         <label
           htmlFor="waste-description"

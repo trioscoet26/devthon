@@ -385,13 +385,13 @@ export default function Map() {
       </label>
 
       {file && (
-        <p className="text-gray-700 text-sm mt-2">
+        <p className="text-white text-sm mt-2">
           Selected file: <strong>{file.name}</strong>
         </p>
       )}
               <button
                 id="detect-garbage-btn"
-                className="hidden bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center transition duration-300 transform hover:scale-105"
+                className=" bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center transition duration-300 transform hover:scale-105"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -409,26 +409,7 @@ export default function Map() {
                 </svg>
                 Detect &amp; Map
               </button>
-              <button
-                id="cancel-camera-btn"
-                className="hidden bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center transition duration-300"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-                Cancel
-              </button>
+              
             </div>
             {/* Status Messages */}
             <div

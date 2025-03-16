@@ -5,42 +5,70 @@ import { useAuth } from '@clerk/clerk-react';
 
 export default function Reward() {
   const [reports, setReports] = useState([]);
+  const [purchasedItems, setPurchasedItems] = useState([]);
   const [totalCoins, setTotalCoins] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { getToken, isLoaded } = useAuth();
   const [showAllReports, setShowAllReports] = useState(false);
+  const [showAllPurchases, setShowAllPurchases] = useState(false);
 
   useEffect(() => {
-    const fetchReports = async () => {
+    const fetchData = async () => {
       if (!isLoaded) return;
       
       try {
         const token = await getToken();
-        const response = await axios.get("http://localhost:5000/api/reports/user", {
-          headers: { Authorization: `Bearer ${token}` },
-          timeout: 10000
-        });
         
-        setReports(response.data);
+        // Fetch reports and purchased items in parallel
+        const [reportsResponse, purchasesResponse] = await Promise.all([
+          axios.get("http://localhost:5000/api/reports/user", {
+            headers: { Authorization: `Bearer ${token}` },
+            timeout: 10000
+          }),
+          axios.get("http://localhost:5000/api/listings/purchased", {
+            headers: { Authorization: `Bearer ${token}` },
+            timeout: 10000
+          })
+        ]);
+        
+        setReports(reportsResponse.data);
+        setPurchasedItems(purchasesResponse.data);
         
         // Calculate total coins from accepted reports
-        const acceptedCoins = response.data
+        const earnedCoins = reportsResponse.data
           .filter(report => report.status === "accepted")
           .reduce((total, report) => total + (report.coinsEarned || 0), 0);
         
-        setTotalCoins(acceptedCoins);
+        // Calculate total spent coins from purchased items
+        const spentCoins = purchasesResponse.data
+          .reduce((total, item) => total + (item.price || 0), 0);
+        
+        // Calculate net coins (earned - spent)
+        const netCoins = earnedCoins - spentCoins;
+        
+        // Update the user's greenCoins in the database
+        await axios.post("http://localhost:5000/api/users/update-coins", 
+          { amount: netCoins },
+          { 
+            headers: { Authorization: `Bearer ${token}` },
+            timeout: 10000
+          }
+        );
+        
+        setTotalCoins(netCoins);
         setLoading(false);
       } catch (err) {
-        setError("Failed to load reports");
+        setError("Failed to load data");
         setLoading(false);
-        console.error("Error fetching reports:", err);
+        console.error("Error fetching data:", err);
       }
     };
-
-    fetchReports();
+  
+    fetchData();
   }, [getToken, isLoaded]);
 
+  
   if (loading) {
     return (
       <div className="flex justify-center items-center h-40">
@@ -110,9 +138,18 @@ export default function Reward() {
     }
   };
 
-  const displayedReports = showAllReports ? reports : reports.slice(0, 6);
+  const getPurchasedItemIcon = () => {
+    return (
+      <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mr-3">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-purple-600" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+        </svg>
+      </div>
+    );
+  };
 
-
+  const displayedReports = showAllReports ? reports : reports.slice(0, 4);
+  const displayedPurchases = showAllPurchases ? purchasedItems : purchasedItems.slice(0, 3);
 
 
 
@@ -187,10 +224,10 @@ export default function Reward() {
      
 <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-xl overflow-hidden">
 {/* Rewards Dashboard */}
-      <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-6 text-white">
+<div className="bg-gradient-to-r from-purple-600 to-purple-800 p-6 text-white">
         <div className="flex justify-between items-center">
           <div>
-            <h3 className="text-xl font-bold">Waste Reports Dashboard</h3>
+            <h3 className="text-xl font-bold">Greencoins Dashboard</h3>
             <p className="text-sm text-white/80">Your sustainability impact</p>
           </div>
           <div className="flex items-center bg-white/20 px-3 py-1 rounded-full text-sm">
@@ -204,7 +241,7 @@ export default function Reward() {
       <div className="p-6 border-b border-neutral-200 dark:border-neutral-700">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">Total Coins Earned</p>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">Available Balance</p>
             <div className="flex items-center mt-1">
               <div className="h-8 w-8 mr-2">
                 <div className="w-full h-full rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
@@ -236,62 +273,116 @@ export default function Reward() {
         </div>
       </div>
 
+      {/* Tabs: Reports and Purchases */}
       <div className="p-6">
-        <h4 className="font-semibold text-neutral-900 dark:text-white mb-4">Your Waste Reports</h4>
-        <div className="space-y-4">
-          {reports.length === 0 ? (
-            <p className="text-center text-neutral-500 dark:text-neutral-400 py-4">
-              No waste reports found. Start reporting waste to earn coins!
-            </p>
-          ) : (
-            displayedReports.map((report) => (
-              <div key={report._id} className="flex items-center justify-between">
-                <div className="flex items-center">
-                  {getWasteTypeIcon(report.waste_type)}
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-neutral-900 dark:text-white">
-                        {report.waste_type.charAt(0).toUpperCase() + report.waste_type.slice(1)} Waste
+        <div className="flex border-b border-neutral-200 dark:border-neutral-700 mb-4">
+          <button 
+            className="pb-2 px-4 border-b-2 border-purple-600 text-purple-600 font-medium"
+          >
+            Activity History
+          </button>
+        </div>
+        </div>
+
+
+        <div className="mb-6 p-6">
+          <h4 className="font-semibold text-neutral-900 dark:text-white mb-2">Earnings</h4>
+          <div className="space-y-4">
+            {reports.length === 0 ? (
+              <p className="text-center text-neutral-500 dark:text-neutral-400 py-4">
+                No waste reports found. Start reporting waste to earn coins!
+              </p>
+            ) : (
+              displayedReports.map((report) => (
+                <div key={report._id} className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    {getWasteTypeIcon(report.waste_type)}
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-neutral-900 dark:text-white">
+                          {report.waste_type.charAt(0).toUpperCase() + report.waste_type.slice(1)} Waste
+                        </p>
+                        {getStatusLabel(report.status)}
+                      </div>
+                      <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                        {report.location} • {report.estimated_quantity} amount
                       </p>
-                      {getStatusLabel(report.status)}
                     </div>
-                    <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                      {report.location} • {report.estimated_quantity} amount
+                  </div>
+                  <div className="text-right">
+                    {report.status === "accepted" ? (
+                      <p className="font-medium text-green-600 dark:text-green-400">
+                        +{report.coinsEarned} GC
+                      </p>
+                    ) : (
+                      <p className="font-medium text-yellow-600 dark:text-yellow-400">
+                        Coming Soon
+                      </p>
+                    )}
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                      {new Date(report.reportedAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  {report.status === "accepted" ? (
-                    <p className="font-medium text-green-600 dark:text-green-400">
-                      +{report.coinsEarned} GC
-                    </p>
-                  ) : (
-                    <p className="font-medium text-yellow-600 dark:text-yellow-400">
-                      Coming Soon
-                    </p>
-                  )}
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                    {new Date(report.reportedAt).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-            ))
+              ))
+            )}
+          </div>
+          
+          {reports.length > 4 && (
+            <button 
+              className="w-full mt-4 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
+              onClick={() => setShowAllReports(!showAllReports)}
+            >
+              {showAllReports ? "Show Less" : `View All Reports (${reports.length})`}
+            </button>
           )}
         </div>
-        
-        {reports.length > 8 && (
-          <button 
-            className="w-full mt-4 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
-            onClick={() => setShowAllReports(!showAllReports)}
-          >
-            {showAllReports ? "Show Less" : `View All Reports (${reports.length})`}
-          </button>
-        )}
+
+        {/* Purchases Section */}
+        <div className="p-6">
+          <h4 className="font-semibold text-neutral-900 dark:text-white mb-2">Purchases</h4>
+          <div className="space-y-4">
+            {purchasedItems.length === 0 ? (
+              <p className="text-center text-neutral-500 dark:text-neutral-400 py-4">
+                No items purchased yet. Visit the marketplace to spend your coins!
+              </p>
+            ) : (
+              displayedPurchases.map((item) => (
+                <div key={item._id} className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    {getPurchasedItemIcon()}
+                    <div>
+                      <p className="font-medium text-neutral-900 dark:text-white">
+                        {item.title || "Marketplace Item"}
+                      </p>
+                      <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                        {item.category || "Item"} • {item.condition || "New"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-red-600 dark:text-red-400">
+                      -{item.price} GC
+                    </p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                      {item.purchasedAt ? new Date(item.purchasedAt).toLocaleDateString() : new Date().toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          
+          {purchasedItems.length > 3 && (
+            <button 
+              className="w-full mt-4 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
+              onClick={() => setShowAllPurchases(!showAllPurchases)}
+            >
+              {showAllPurchases ? "Show Less" : `View All Purchases (${purchasedItems.length})`}
+            </button>
+          )}
+        </div>
       </div>
-    </div>
-
-
-
 
 
 

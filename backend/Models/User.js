@@ -32,6 +32,12 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // Add to your User schema
+purchasedItems: {
+  type: [mongoose.Schema.Types.ObjectId],
+  ref: 'Listing',
+  default: []
+},
   },
   {
     timestamps: true,

@@ -9,6 +9,7 @@ import { ClerkProvider,useUser } from '@clerk/clerk-react';
 import AdminLogin from './adminLogin';
 import AdminDashboard from './adminDashboard';
 import "./index.css";  
+import { ToastContainer } from 'react-toastify';
 
 
 function App() {
@@ -31,7 +32,7 @@ function App() {
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
       </Routes>
       <Footer />
-
+    <ToastContainer />
     </Router>
     </>
   )
