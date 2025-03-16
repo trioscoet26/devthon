@@ -1,5 +1,0 @@
-flask
-ultralytics
-pymongo
-geopy
-flask-cors

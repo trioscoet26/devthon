@@ -4,8 +4,8 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import sampleImage from "./sample.png"// Adjust the path as needed
 import { useState } from "react";
-
-
+import OpenCameraButton from "./OpenCameraButton";
+import OpenImageVideo from "./OpenImageVideo";
 // Custom Red Marker Icon
 const redIcon = new L.Icon({
   iconUrl: "https://cdn-icons-png.flaticon.com/512/1673/1673221.png",
@@ -309,7 +309,7 @@ export default function Map() {
             />
             {/* Camera Controls */}
             <div className="grid grid-cols-1 gap-4 w-full">
-            <button
+            {/* <button
         id="open-camera-btn"
         className="bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center transition duration-300 transform hover:scale-105"
       >
@@ -334,8 +334,10 @@ export default function Map() {
           />
         </svg>
         Open Camera
-      </button>
-
+      </button> */}
+      <OpenCameraButton />
+      
+      <OpenImageVideo />
       {/* Capture Photo Button */}
       <button
         id="capture-btn"
@@ -358,8 +360,9 @@ export default function Map() {
         Take Photo
       </button>
 
+
       {/* Upload File Button */}
-      <label className="cursor-pointer bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center transition duration-300 transform hover:scale-105">
+      {/* <label className="cursor-pointer bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center transition duration-300 transform hover:scale-105">
         <input
           type="file"
           accept=".png,.jpeg,.jpg,.mp4"
@@ -388,8 +391,8 @@ export default function Map() {
         <p className="text-white text-sm mt-2">
           Selected file: <strong>{file.name}</strong>
         </p>
-      )}
-              <button
+      )} */}
+              {/* <button
                 id="detect-garbage-btn"
                 className=" bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center transition duration-300 transform hover:scale-105"
               >
@@ -408,7 +411,7 @@ export default function Map() {
                   />
                 </svg>
                 Detect &amp; Map
-              </button>
+              </button> */}
               
             </div>
             {/* Status Messages */}
