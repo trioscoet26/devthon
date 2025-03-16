@@ -9,7 +9,8 @@ import { ClerkProvider,useUser } from '@clerk/clerk-react';
 import AdminLogin from './adminLogin';
 import AdminDashboard from './adminDashboard';
 import "./index.css";  
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 
 function App() {
