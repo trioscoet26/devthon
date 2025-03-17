@@ -426,59 +426,59 @@ export default function Map() {
       </div>
     </div>
     {/* Instructions */}
-    <div className="mt-12 bg-gray-50 dark:bg-neutral-700 rounded-xl p-6 shadow-md">
-      <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
-        How to Use This Interface
-      </h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <div className="flex items-center justify-center h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/30 text-green-500">
-              <span className="text-lg font-bold">1</span>
+      <div className="mt-12 bg-gray-50 dark:bg-neutral-700 rounded-xl p-6 shadow-md">
+        <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
+          How to Use This Interface
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <div className="flex items-center justify-center h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/30 text-green-500">
+                <span className="text-lg font-bold">1</span>
+              </div>
+            </div>
+            <div className="ml-4">
+              <h4 className="text-lg font-medium text-gray-800 dark:text-white">
+                Open Camera
+              </h4>
+              <p className="mt-1 text-gray-600 dark:text-gray-300">
+                Click the "Open Camera" button to activate your device's camera.
+              </p>
             </div>
           </div>
-          <div className="ml-4">
-            <h4 className="text-lg font-medium text-gray-800 dark:text-white">
-              Open Camera
-            </h4>
-            <p className="mt-1 text-gray-600 dark:text-gray-300">
-              Click the "Open Camera" button to activate your device's camera.
-            </p>
-          </div>
-        </div>
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <div className="flex items-center justify-center h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/30 text-green-500">
-              <span className="text-lg font-bold">2</span>
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <div className="flex items-center justify-center h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/30 text-green-500">
+                <span className="text-lg font-bold">2</span>
+              </div>
+            </div>
+            <div className="ml-4">
+              <h4 className="text-lg font-medium text-gray-800 dark:text-white">
+                Capture Photo
+              </h4>
+              <p className="mt-1 text-gray-600 dark:text-gray-300">
+                Take a photo of the garbage site with the "Take Photo" button.
+              </p>
             </div>
           </div>
-          <div className="ml-4">
-            <h4 className="text-lg font-medium text-gray-800 dark:text-white">
-              Capture Photo
-            </h4>
-            <p className="mt-1 text-gray-600 dark:text-gray-300">
-              Take a photo of the garbage site with the "Take Photo" button.
-            </p>
-          </div>
-        </div>
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <div className="flex items-center justify-center h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/30 text-green-500">
-              <span className="text-lg font-bold">3</span>
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <div className="flex items-center justify-center h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/30 text-green-500">
+                <span className="text-lg font-bold">3</span>
+              </div>
             </div>
-          </div>
-          <div className="ml-4">
-            <h4 className="text-lg font-medium text-gray-800 dark:text-white">
-              Detect &amp; Map
-            </h4>
-            <p className="mt-1 text-gray-600 dark:text-gray-300">
-              The system will automatically fetch your location and add it to
-              the map.
-            </p>
+            <div className="ml-4">
+              <h4 className="text-lg font-medium text-gray-800 dark:text-white">
+                Detect &amp; Map
+              </h4>
+              <p className="mt-1 text-gray-600 dark:text-gray-300">
+                The system will automatically fetch your location and add it to
+                the map.
+              </p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
   </div>
 </section>
 

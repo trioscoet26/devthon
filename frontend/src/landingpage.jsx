@@ -478,7 +478,7 @@ export default function landingpage() {
     {/* Call to Action */}
     <div className="mt-16 text-center">
       <a
-        href="#camera-demo"
+        href="#map-interface"
         className="inline-block bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition duration-300 transform hover:scale-105"
       >
         Try it Now

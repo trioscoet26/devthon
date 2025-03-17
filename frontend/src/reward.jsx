@@ -561,7 +561,7 @@ export default function Reward() {
     {/* CTA */}
     <div className="mt-16 text-center">
       <a
-        href="#eco-commerce"
+        href="/marketplace"
         className="inline-flex items-center px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-all duration-300 transform hover:scale-105"
       >
         Redeem Your Greencoins

@@ -871,7 +871,7 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
     {/* CTA */}
     <div className="mt-16 text-center">
       <a
-        href="#waste-reporting"
+        href="/marketplace"
         className="inline-flex items-center px-6 py-4 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg shadow-lg transition duration-300 transform hover:-translate-y-1"
       >
         Start Recycling Today

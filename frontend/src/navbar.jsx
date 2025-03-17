@@ -23,7 +23,7 @@ export default function Navbar() {
       <nav className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
           {/* Logo */}
-          <a href="#hero" className="text-2xl font-bold">
+          <a href="/" className="text-2xl font-bold">
             <span className="text-[#1E8449]">Smart</span>
             <span className="text-[#3498DB]">Waste</span>
           </a>
@@ -47,10 +47,6 @@ export default function Navbar() {
           >
             {[
               { to: "/", label: "Home" },
-              { href: "#about", label: "About" },
-              { href: "#features", label: "Features" },
-              { href: "#how-it-works", label: "How It Works" },
-              { href: "#benefits", label: "Benefits" },
               { to: "/report", label: "Report Waste" },
               { to: "/reward", label: "GreenCoins" },
               { to: "/marketplace", label: "Marketplace" },

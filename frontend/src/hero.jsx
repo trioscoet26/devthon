@@ -29,10 +29,12 @@ export default function hero() {
   <div className="container mx-auto px-4 py-16 pt-32 md:pt-24 relative z-10">
     <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
       <div className="w-full md:w-1/2 animate__animated animate__fadeInLeft">
+        <a href="/">
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight">
           <span className="text-[#1E8449]">Smart</span> Garbage{" "}
           <span className="text-[#3498DB]">Detection</span> &amp; Mapping
         </h1>
+        </a>
         <p className="text-xl md:text-2xl mb-6 text-gray-300">
           Revolutionizing urban cleanliness with AI-powered waste management
           solutions
@@ -44,13 +46,13 @@ export default function hero() {
         </p>
         <div className="flex flex-wrap gap-4">
           <a
-            href="#how-it-works"
+            href="#how-to-use"
             className="px-6 py-3 bg-[#1E8449] hover:bg-[#1E8449]/90 text-white font-medium rounded-md transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 animate__animated animate__pulse animate__infinite animate__slower"
           >
             How It Works
           </a>
           <a
-            href="#contact"
+            href="#footer"
             className="px-6 py-3 bg-transparent border-2 border-[#3498DB] hover:bg-[#3498DB]/10 text-white font-medium rounded-md transition-all duration-300"
           >
             Contact Us

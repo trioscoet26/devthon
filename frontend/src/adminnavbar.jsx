@@ -12,9 +12,13 @@ const AdminNavbar = ({ setIsAdmin }) => {
 
   return (
     <nav className="bg-black text-white p-4 flex justify-between">
-      <h1 className="text-xl font-bold">Admin Panel</h1>
+      <div className="text-2xl font-bold">
+              <span className="text-[#1E8449]">Smart</span>
+              <span className="text-[#3498DB]">Waste</span>
+            </div>
+      <h1 className="text-xl font-bold mx-5 text-left">Admin Panel</h1>
       <div>
-        <Link to="/admin-dashboard" className="mr-4">Dashboard</Link>
+        
         <button 
           onClick={handleLogout} 
           className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition duration-300"
