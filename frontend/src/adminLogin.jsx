@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const AdminLogin = ({ setIsAdmin }) => {
-    console.log("setIsAdmin:", setIsAdmin);  // Debugging line
+console.log("setIsAdmin:", setIsAdmin);  // Debugging line
   
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");

@@ -87,7 +87,7 @@ const CreateListing = () => {
   };
 
   return (
-    <div className="bg-gray-800 text-white p-8 rounded-lg max-w-4xl mx-auto">
+    <div className="bg-gray-800 text-white p-8  mb-8 rounded-lg max-w-4xl mx-auto">
       <h2 className="text-2xl font-semibold mb-6 text-center">Create New Listing</h2>
       
       <form onSubmit={handleSubmit}>

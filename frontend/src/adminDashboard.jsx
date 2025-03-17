@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Charts from "./charts";
 import ApproveReport from "./ApproveReport";
 import CreateListing from "./CreateListing";
+import History  from "./History"
 import { BarChart2, FileText, ShoppingBag, Map } from "lucide-react";
 
 function Sidebar({ setActiveComponent }) {
@@ -9,7 +10,7 @@ function Sidebar({ setActiveComponent }) {
     { icon: BarChart2, text: "Charts", component: "Charts" },
     { icon: FileText, text: "Reports", component: "ApproveReport" },
     { icon: ShoppingBag, text: "Marketplace", component: "Marketplace" },
-    { icon: Map, text: "Maps", component: "Maps" },
+    { icon: Map, text: "Purchase History", component: "History" },
   ];
 
   return (
@@ -46,7 +47,7 @@ const AdminDashboard = () => {
           {activeComponent === "Charts" && <Charts />}
           {activeComponent === "ApproveReport" && <ApproveReport />}
           {activeComponent === "Marketplace" &&  <CreateListing />}
-          {activeComponent === "Maps" && <div>Maps Component</div>}
+          {activeComponent === "History" && <History />}
         </main>
       </div>
     </div>

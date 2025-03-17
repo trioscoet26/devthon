@@ -3,7 +3,7 @@ import React from 'react'
 export default function footer() {
   return (
     <div>
-      <footer id="footer" class="bg-neutral-800 dark:bg-neutral-900 text-white py-12">
+      <footer id="footer" class="bg-neutral-800 dark:bg-neutral-900 text-white py-12  ">
     <div class="container mx-auto px-4">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
         <div class="space-y-4">

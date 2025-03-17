@@ -76,7 +76,6 @@ export default function Marketplace() {
           }
         } catch (error) {
           console.log(error);
-          toast.error("Payment verification failed");
         }
       },
       theme: {
