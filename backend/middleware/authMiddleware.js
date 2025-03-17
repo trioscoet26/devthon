@@ -1,5 +1,5 @@
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
-import User from "../models/User.js";
+import User from "../Models/User.js";
 
 // ✅ Middleware to require Clerk authentication
 export const requireAuth = ClerkExpressRequireAuth({});
