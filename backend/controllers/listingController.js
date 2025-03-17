@@ -50,11 +50,9 @@ export const getListingById = async (req, res) => {
 // ✅ Create a new listing
 export const createListing = async (req, res) => {
   try {
-    const { title, description, materialType, quantity, unit, price, location, imageUrl } = req.body;
+    const { title, description, materialType, quantity, unit, price, amount , location, imageUrl } = req.body;
 
-    if (!req.user) {
-      return res.status(401).json({ message: "User not authenticated" });
-    }
+  
 
     const newListing = await Listing.create({
       title,
@@ -63,13 +61,12 @@ export const createListing = async (req, res) => {
       quantity,
       unit,
       price,
+      amount,
       location,
       imageUrl,
-      user: req.user._id,
       isInDemand: ["Plastic", "Metal"].includes(materialType), // Example logic for in-demand materials
     });
 
-    await newListing.populate("user", "username displayName profileImageUrl");
 
     res.status(201).json(newListing);
   } catch (error) {

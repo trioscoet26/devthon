@@ -8,6 +8,7 @@ import chartRoutes from "./routes/chartRoutes.js";
 import userRoutes from './routes/userRoutes.js';
 import listingRoutes from './routes/listingRoutes.js';
 import allUserRoutes from './routes/allUserRoutes.js';
+import payment from './routes/payment.js';
 
 // Load environment variables
 dotenv.config();
@@ -35,6 +36,8 @@ app.use("/api/charts", chartRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/listings', listingRoutes);
 app.use("/api/allusers", allUserRoutes);
+app.use("/api/payment", payment);
+
 
 // Basic health check route
 app.get('/', (req, res) => {
