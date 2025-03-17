@@ -1,22 +1,66 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import logging
-from ultralytics import YOLO 
-import cv2 
-import threading 
-import numpy as np, tempfile
+from ultralytics import YOLO
+import cv2
+import threading
+import numpy as np
+import tempfile
+import requests
+from pymongo import MongoClient
+from models import get_db
+import time, geocoder
+
 # Initialize Flask App
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend communication
 
-# load model 
-model = YOLO("best.pt") 
+# Load YOLO Model
+model = YOLO("best.pt")
+
+# Load MongoDB
+db = get_db()
+location_collection = db["locations"]
 
 # Configure Logging
 logging.basicConfig(level=logging.INFO)
 
+# Function to get location (Replace this with front-end GPS-based implementation)
+def get_location():
+    try:
+        # Try to get precise location using geocoder (requires user permission)
+        g = geocoder.ip("me")
+        if g.ok:
+            lat, lon = g.latlng
+            city = g.city if g.city else "Unknown"
+            return lat, lon, city
+
+        # Fallback to IP-based location
+        response = requests.get("https://ipinfo.io/json", timeout=5)
+        data = response.json()
+        lat, lon = map(float, data["loc"].split(","))
+        city = data.get("city", "Unknown")
+        return lat, lon, city
+
+    except Exception as e:
+        print("Error getting location:", e)
+        return None, None, None
+    
+def store_location():
+    lat, lon, city = get_location()
+    if lat and lon:
+        existing_entry = location_collection.find_one({"latitude": lat, "longitude": lon})
+        if not existing_entry:
+            location_data = {"latitude": lat, "longitude": lon, "city": city, "timestamp": time.time()}
+            location_collection.insert_one(location_data)
+            print("Stored Location:", location_data)
+        else:
+            print("Duplicate location, not storing again.")
+
 def run_camera():
-    cap = cv2.VideoCapture(0)  # Use 0 for webcam, or provide a video file path
+    cap = cv2.VideoCapture(0)  # Use 0 for webcam
+
+    store_location()  # Fetch and store location before starting camera
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -24,7 +68,7 @@ def run_camera():
             break
 
         # Run inference
-        results = model(frame)
+        results = model.predict(frame, stream=True)
 
         # Show results
         for r in results:
@@ -45,12 +89,12 @@ def open_camera():
         return jsonify({"message": "Camera started successfully!"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
 def process_image(image_data):
-    npimg = np.frombuffer(image_data, np.uint8)  # Convert to numpy array
+    npimg = np.frombuffer(image_data, dtype=np.uint8)  # Convert to numpy array
     img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)  # Decode image
 
-    results = model(img)  # Run YOLO inference
+    results = model.predict(img, stream=True)  # Run YOLO inference
     for r in results:
         im_array = r.plot()  # Draw detections
         cv2.imshow("YOLO Garbage Detection", im_array)
@@ -73,7 +117,7 @@ def open_image():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-def process_video(video_file): 
+def process_video(video_file):
     # Write video to a temporary file
     with tempfile.NamedTemporaryFile(delete=True, suffix=".mp4") as temp_video:
         temp_video.write(video_file)  # Save uploaded video to temp file
@@ -87,9 +131,9 @@ def process_video(video_file):
         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
         cv2.resizeWindow(window_name, target_width, target_height)
 
-        # Get screen resolution and calculate the center position
-        screen_width = 1920  # Change if needed
-        screen_height = 1080
+        # Get screen resolution dynamically
+        screen_width = cv2.getWindowImageRect(window_name)[2]
+        screen_height = cv2.getWindowImageRect(window_name)[3]
         x_pos = (screen_width - target_width) // 2
         y_pos = (screen_height - target_height) // 2
 
@@ -100,7 +144,7 @@ def process_video(video_file):
             if not ret:
                 break  # Stop if video ends
 
-            results = model(frame)  # Run YOLO inference
+            results = model.predict(frame, stream=True)  # Run YOLO inference
             for r in results:
                 im_array = r.plot()  # Draw detections
                 cv2.imshow(window_name, im_array)
