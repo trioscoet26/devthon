@@ -18,6 +18,6 @@ const PaymentSchema = new  mongoose.Schema({
         default: Date.now
     },
 });
-const Payment = mongoose.model("Payment", PaymentSchema);
+const payment = mongoose.model("payment", PaymentSchema);
 
-export default Payment;
+export default payment;

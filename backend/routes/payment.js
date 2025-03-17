@@ -2,7 +2,7 @@ import express from 'express';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import 'dotenv/config';
-import Payment from '../models/Payment.js';
+import payment from '../models/payment.js';
 
 const router = express.Router();
 
@@ -58,7 +58,7 @@ router.post('/verify', async (req, res) => {
 
         // Condition 
         if (isAuthentic) {
-            const payment = new Payment({
+            const payment = new payment({
                 razorpay_order_id,
                 razorpay_payment_id,
                 razorpay_signature
