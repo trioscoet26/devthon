@@ -9,9 +9,5 @@ export default defineConfig({
   css: {
     postcss: "./postcss.config.js",
   },
-  server: {
-    proxy: {
-      "/api": "https://smartwaste-3smg.onrender.com",
-    },
-  },
+ 
 });
