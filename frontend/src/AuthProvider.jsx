@@ -103,6 +103,40 @@ export const listingService = {
   getUserListings: async () => {
     const response = await api.get('/api/listings/user/me');
     return response.data;
+  },
+  getPurchasedListings: async () => {
+    try {
+      const response = await api.get('/api/listings/purchased');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching purchased listings:', error);
+      throw error;
+    }
+  },
+  
+  purchaseListing: async (listingId, price) => {
+    try {
+      const response = await api.post('/api/listings/purchase', { 
+        listingId, 
+        price 
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error purchasing listing:', error);
+      throw error;
+    }
+  },
+  
+  updateListingPrice: async (listingId, price) => {
+    try {
+      const response = await api.patch(`/api/listings/${listingId}`, { 
+        price: parseInt(price) || 0 
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating listing price:', error);
+    }
+
   }
 };
 

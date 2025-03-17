@@ -277,8 +277,8 @@ const Charts = () => {
     }
 
     return (
-        <div className="min-h-screen bg-neutral-900">
-            <header className="bg-neutral-900 shadow-md">
+        <div className="min-h-screen  bg-black">
+            <header className=" bg-black shadow-md">
                 <div className="container mx-auto px-4 py-6">
                     <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center">
                         <svg className="w-8 h-8 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

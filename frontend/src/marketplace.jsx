@@ -16,9 +16,78 @@ export default function Marketplace() {
   const [purchasedItems, setPurchasedItems] = useState([]);
   const [purchasedListings, setPurchasedListings] = useState([]);
   const [discountCoins, setDiscountCoins] = useState({});
-const [finalPrices, setFinalPrices] = useState({});
-const { getToken } = useAuth(); // Assuming you have an auth context with user info
-  // Fetch listings based on filters
+  const [finalPrices, setFinalPrices] = useState({});
+  const { getToken } = useAuth(); 
+  const [amount, setamount] = useState(10);
+  const [orderDetails, setOrderDetails] = useState(null);
+
+
+
+
+  const handlePayment = async (listingId, finalPrice) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/payment/order`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json"
+        },
+        body: JSON.stringify({
+          amount: finalPrice
+        })
+      });
+  
+      const data = await res.json();
+      // console.log(data);
+      handlePaymentVerify(data.data, listingId, finalPrice);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  // handlePaymentVerify Function
+  const handlePaymentVerify = async (data, listingId, finalPrice) => {
+    const options = {
+      key: import.meta.env.RAZORPAY_KEY_ID,
+      amount: data.amount,
+      currency: data.currency,
+      name: "Devknus",
+      description: "Test Mode",
+      order_id: data.id,
+      handler: async (response) => {
+        // console.log("response", response)
+        try {
+          const res = await fetch(`http://localhost:5000/api/payment/verify`, {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json'
+            },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            })
+          });
+  
+          const verifyData = await res.json();
+  
+          if (verifyData.message) {
+            toast.success(verifyData.message);
+            // Call handlePurchase only after successful payment verification
+            handlePurchase(listingId, finalPrice);
+          }
+        } catch (error) {
+          console.log(error);
+          toast.error("Payment verification failed");
+        }
+      },
+      theme: {
+        color: "#5f63b8"
+      }
+    };
+    const rzp1 = new window.Razorpay(options);
+    rzp1.open();
+  }
+  
+
   const fetchListings = async () => {
     try {
       setLoading(true);
@@ -201,6 +270,11 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
     try {
       const token = await getToken();
       
+      if (!token) {
+        console.log('No auth token available yet');
+        return; // Exit if no token is available
+      }
+      
       const response = await axios.get('http://localhost:5000/api/listings/purchased', {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -208,14 +282,39 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
       setPurchasedItems(response.data.map(item => item._id));
     } catch (error) {
       console.error('Error fetching purchased items:', error);
+      // Check if it's a 401 error
+      if (error.response && error.response.status === 401) {
+        console.log('Authentication error, will retry when token is available');
+      }
     }
   };
-  
+  // Add this useEffect to watch for auth changes
+ // This will run when the auth token changes
   // Add this to your useEffect to fetch purchased items on load
   useEffect(() => {
     fetchListings();
-    fetchPurchasedItems();
+    
+    // Add a check for authentication before fetching purchased items
+    const loadPurchasedItems = async () => {
+      const token = await getToken();
+      if (token) {
+        fetchPurchasedItems();
+      }
+    };
+    
+    loadPurchasedItems();
   }, [materialType, search, refreshTrigger]);
+
+  useEffect(() => {
+    const checkAuthAndFetchItems = async () => {
+      const token = await getToken();
+      if (token) {
+        fetchPurchasedItems();
+      }
+    };
+    
+    checkAuthAndFetchItems();
+  }, [getToken]);
 
   const handlePurchase = async (listingId, finalPrice) => {
     try {
@@ -275,6 +374,21 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
     }
   };
   
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
   return (
     <div>
 <section
@@ -516,13 +630,18 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
                 </div>
                 <div className="mt-4 md:mt-0">
                {/* Updated purchase button */}
-<button 
+               <button
   className={`px-4 py-2 ${
-    purchasedItems.includes(listing._id) 
-      ? 'bg-green-600 hover:bg-green-700' 
+    purchasedItems.includes(listing._id)
+      ? 'bg-green-600 hover:bg-green-700'
       : 'bg-amber-600 hover:bg-amber-700'
   } text-white rounded-md text-sm font-medium transition duration-300`}
-  onClick={() => !purchasedItems.includes(listing._id) && handlePurchase(listing._id, finalPrices[listing._id] || listing.amount)}
+  onClick={() => {
+    if (!purchasedItems.includes(listing._id)) {
+      // Only call handlePayment first, which will call handlePurchase after successful payment
+      handlePayment(listing._id, finalPrices[listing._id] || listing.amount);
+    }
+  }}
   disabled={purchasedItems.includes(listing._id)}
 >
   {purchasedItems.includes(listing._id) 
@@ -678,9 +797,11 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
       </div>
     </div>
 
+
+
     {/* Purchased Items Section */}
     <div className="lg:w-2/3 mx-auto">
-    <div className="bg-gray-50 dark:bg-neutral-800 rounded-xl shadow-lg overflow-hidden h-full">
+  <div className="bg-gray-50 dark:bg-neutral-800 rounded-xl shadow-lg overflow-hidden h-full">
     <div className="bg-green-600 dark:bg-green-700 p-4 text-white">
       <h3 className="text-xl font-semibold">Your Purchased Items</h3>
     </div>
@@ -691,39 +812,52 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
           You haven't purchased any items yet.
         </div>
       ) : (
-        purchasedListings.map((listing) => (
+        [...purchasedListings].reverse().map((listing) => (
           <div key={listing._id} className="bg-white dark:bg-neutral-700 p-4 rounded-lg mb-3 shadow-sm">
-            <div className="flex items-start gap-4">
-              <div className="bg-green-100 dark:bg-green-900 p-2 rounded-md">
-                {getMaterialIcon(listing.materialType)}
-              </div>
-              <div className="flex-grow">
-                <h4 className="text-lg font-semibold text-gray-800 dark:text-white">
-                  {listing.title}
-                </h4>
-                <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">
-                  {listing.description.slice(0, 50)}...
-                </p>
-                <div className="flex flex-wrap items-center text-sm text-gray-500 dark:text-gray-400 gap-2">
-                  <span className="flex items-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 mr-1"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    {listing.price} GreenCoins
-                  </span>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="bg-green-100 dark:bg-green-900 p-2 rounded-md">
+                  {getMaterialIcon(listing.materialType)}
+                </div>
+                <div className="flex-grow">
+                  <h4 className="text-lg font-semibold text-gray-800 dark:text-white">
+                    {listing.title}
+                  </h4>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">
+                    {listing.description}
+
+                    &nbsp;&nbsp;  {listing.quantity} {listing.unit}  &nbsp;&nbsp;  {listing.materialType}
+
+                  </p>
+                  <p></p>
                 </div>
               </div>
+              <div className="flex flex-col text-sm text-gray-500 dark:text-gray-400">
+  <span className="flex items-center font-medium">
+    <span className=" text-red-600 dark:text-red-400">-</span> 
+    {listing.price}    <span >&nbsp; GreenCoins</span>
+
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className="h-4 w-4 ml-1 text-red-600 dark:text-red-400"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
+    </svg>
+  </span>
+  
+
+  <span className="  font-medium" >    <span className=" text-red-600 dark:text-red-400 font-medium">-</span> 
+  {listing.amount - listing.price } Rs</span>
+</div>
+
             </div>
           </div>
         ))
@@ -731,244 +865,10 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
     </div>
   </div>
 </div>
-    {/* Testimonials & Success Stories */}
-    <div className="mt-16">
-      <h3 className="text-2xl font-bold text-gray-800 dark:text-white text-center mb-8">
-        Success Stories
-      </h3>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Testimonial 1 */}
-        <div className="bg-white dark:bg-neutral-800 p-6 rounded-xl shadow-md">
-          <div className="flex items-center mb-4">
-            <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center mr-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-amber-600 dark:text-amber-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-800 dark:text-white">
-                Sarah K.
-              </h4>
-              <p className="text-gray-500 dark:text-gray-400 text-sm">
-                Local Business Owner
-              </p>
-            </div>
-          </div>
-          <p className="text-gray-600 dark:text-gray-300 mb-4">
-            "The recycling marketplace has helped our coffee shop reduce waste
-            costs by 30%. We now sell our used coffee grounds to local gardeners
-            and connect with buyers for our cardboard waste."
-          </p>
-          <div className="flex text-amber-500">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-          </div>
-        </div>
-        {/* Testimonial 2 */}
-        <div className="bg-white dark:bg-neutral-800 p-6 rounded-xl shadow-md">
-          <div className="flex items-center mb-4">
-            <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center mr-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-amber-600 dark:text-amber-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-800 dark:text-white">
-                Miguel R.
-              </h4>
-              <p className="text-gray-500 dark:text-gray-400 text-sm">
-                Recycling Entrepreneur
-              </p>
-            </div>
-          </div>
-          <p className="text-gray-600 dark:text-gray-300 mb-4">
-            "I started collecting e-waste from my neighborhood and selling it
-            through the marketplace. What began as a side hustle has grown into
-            a full-time business connecting tech companies with recycled
-            materials."
-          </p>
-          <div className="flex text-amber-500">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-          </div>
-        </div>
-        {/* Testimonial 3 */}
-        <div className="bg-white dark:bg-neutral-800 p-6 rounded-xl shadow-md">
-          <div className="flex items-center mb-4">
-            <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center mr-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-amber-600 dark:text-amber-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-800 dark:text-white">
-                Priya T.
-              </h4>
-              <p className="text-gray-500 dark:text-gray-400 text-sm">
-                Community Organizer
-              </p>
-            </div>
-          </div>
-          <p className="text-gray-600 dark:text-gray-300 mb-4">
-            "Our neighborhood association uses the marketplace to coordinate
-            community recycling drives. We've collected over 5 tons of
-            recyclables and used the GreenCoins to fund local park
-            improvements."
-          </p>
-          <div className="flex text-amber-500">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-          </div>
-        </div>
-      </div>
-    </div>
+
+
+
+
     {/* CTA */}
     <div className="mt-16 text-center">
       <a
