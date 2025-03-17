@@ -26,7 +26,7 @@ export default function Marketplace() {
 
   const handlePayment = async (listingId, finalPrice) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/payment/order`, {
+      const res = await fetch(`https://smartwaste-3smg.onrender.com/api/payment/order`, {
         method: "POST",
         headers: {
           "content-type": "application/json"
@@ -55,7 +55,7 @@ export default function Marketplace() {
       handler: async (response) => {
         // console.log("response", response)
         try {
-          const res = await fetch(`http://localhost:5000/api/payment/verify`, {
+          const res = await fetch(`https://smartwaste-3smg.onrender.com/api/payment/verify`, {
             method: 'POST',
             headers: {
               'content-type': 'application/json'
@@ -101,7 +101,7 @@ export default function Marketplace() {
         params.search = search;
       }
       
-      const response = await axios.get('http://localhost:5000/api/listings', { params });
+      const response = await axios.get('https://smartwaste-3smg.onrender.com/api/listings', { params });
    
       const initialFinalPrices = {};
       response.data.forEach(listing => {
@@ -167,7 +167,7 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
 //   try {
 //     const token = await getToken();
 //     const response = await axios.patch(
-//       `http://localhost:5000/api/listings/${listingId}`,
+//       `https://smartwaste-3smg.onrender.com/api/listings/${listingId}`,
 //       { price: parseInt(coins) || 0 },
 //       {
 //         headers: { 
@@ -275,7 +275,7 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
         return; // Exit if no token is available
       }
       
-      const response = await axios.get('http://localhost:5000/api/listings/purchased', {
+      const response = await axios.get('https://smartwaste-3smg.onrender.com/api/listings/purchased', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setPurchasedListings(response.data);
@@ -330,7 +330,7 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
       
       // Send request to purchase the item and deduct coins
       const response = await axios.post(
-        'http://localhost:5000/api/listings/purchase',
+        'https://smartwaste-3smg.onrender.com/api/listings/purchase',
         { 
           listingId,
           price: coinsUsed
@@ -345,7 +345,7 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
       try {
         const token = await getToken();
         const response = await axios.patch(
-          `http://localhost:5000/api/listings/${listingId}`,
+          `https://smartwaste-3smg.onrender.com/api/listings/${listingId}`,
           { price: parseInt(coinsUsed) || 0 },
           {
             headers: { 
