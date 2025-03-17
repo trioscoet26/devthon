@@ -426,7 +426,7 @@ export default function Map() {
       </div>
     </div>
     {/* Instructions */}
-      <div className="mt-12 bg-gray-50 dark:bg-neutral-700 rounded-xl p-6 shadow-md">
+      <div id = "#how-to-use"className="mt-12 bg-gray-50 dark:bg-neutral-700 rounded-xl p-6 shadow-md">
         <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
           How to Use This Interface
         </h3>
