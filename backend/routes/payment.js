@@ -2,7 +2,7 @@ import express from 'express';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import 'dotenv/config';
-import payment from '../models/payment.js';
+import payment from '../Models/payment.js';
 
 const router = express.Router();
 

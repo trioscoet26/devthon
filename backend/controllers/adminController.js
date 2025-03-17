@@ -1,5 +1,5 @@
 import Report from "../Models/Report.js";
-import User from "../models/User.js";
+import User from "../Models/User.js";
 
 // get all data for pie chart
 export const getAllData = async (req, res) => {

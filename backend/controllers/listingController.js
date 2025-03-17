@@ -1,4 +1,4 @@
-import Listing from "../models/Listing.js";
+import Listing from "../Models/Listing.js";
 
 // ✅ Get all listings
 export const getListings = async (req, res) => {
