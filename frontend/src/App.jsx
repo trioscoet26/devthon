@@ -14,6 +14,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import AdminNavbar from "./adminnavbar";
 import React, { useState , useEffect } from "react";
+import Chatbot from './Chatbot'; // Make sure this path is correct
 
 
 function App() {
@@ -45,6 +46,8 @@ useEffect(() => {
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
          
       </Routes>
+      <Chatbot />
+
       <Footer />
     <ToastContainer />
     </Router>
