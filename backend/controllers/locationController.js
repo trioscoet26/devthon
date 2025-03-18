@@ -1,4 +1,4 @@
-import Location from "../models/Location.js";
+import Location from "../Models/Location.js";
 
 // Store location in database
 export const storeLocation = async (req, res) => {
