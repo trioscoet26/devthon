@@ -46,6 +46,22 @@ def get_location():
         print("Error getting location:", e)
         return None, None, None
     
+
+MONGO_URI = "mongodb+srv://root:root@cluster0.ik1za.mongodb.net/garbage_detection"
+
+try:
+    client = MongoClient(MONGO_URI)
+    db = client["garbage_detection"]
+    collection = db["location_data"]
+
+    # Fetch one document
+    data = collection.find_one({})
+    print("Connected Successfully!")
+    print("Sample Data:", data)
+
+except Exception as e:
+    print("Error:", e)
+
 def store_location():
     lat, lon, city = get_location()
     if lat and lon:
@@ -171,6 +187,34 @@ def open_video():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+
+@app.route('/api/locations', methods=['GET'])
+def get_all_locations():
+    try:
+        # Get all locations from the database, excluding MongoDB _id field
+        locations = list(location_collection.find({}, {"_id": 0}))
+        
+        # Add a success message
+        response = {
+            "status": "success",
+            "count": len(locations),
+            "locations": locations
+        }
+        
+        return jsonify(response), 200
+    
+    except Exception as e:
+        # Log the error
+        logging.error(f"Error fetching locations: {str(e)}")
+        
+        # Return error response
+        return jsonify({
+            "status": "error",
+            "message": "Failed to fetch locations",
+            "error": str(e)
+        }), 500
+    
 # Run the Flask App
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=3000)

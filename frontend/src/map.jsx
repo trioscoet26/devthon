@@ -1,9 +1,9 @@
-import React, { useEffect } from "react";
+/* eslint-disable no-unused-vars */
+import React, { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import sampleImage from "./sample.png"// Adjust the path as needed
-import { useState } from "react";
 import OpenCameraButton from "./OpenCameraButton";
 import OpenImageVideo from "./OpenImageVideo";
 // Custom Red Marker Icon
@@ -14,29 +14,39 @@ const redIcon = new L.Icon({
   popupAnchor: [0, -35],
 });
 
+// Blue Marker Icon for detected locations
+const blueIcon = new L.Icon({
+  iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png",
+  iconSize: [35, 35],
+  iconAnchor: [17, 35],
+  popupAnchor: [0, -35],
+});
 
 
-// Garbage dump locations in Amravati
-const garbageLocations = [
-  { id: 1, lat: 20.9374, lng: 77.7796, description: "Overflowing bins near Rajapeth" },
-  { id: 2, lat: 20.9245, lng: 77.7550, description: "Illegal dumping at Badnera Road" },
-  { id: 3, lat: 20.9270, lng: 77.7778, description: "Waste pileup near Maltekdi" },
-  { id: 4, lat: 20.9321, lng: 77.7633, description: "Garbage accumulation near Gadge Nagar" },
-  { id: 5, lat: 20.9423, lng: 77.7725, description: "Unattended waste near Rathi Nagar" },
-];
 
-const OpenAllPopups = () => {
+// Map component to display garbage locations and detected locations
+const MapControl = ({ detectedLocations }) => {
   const map = useMap();
 
   useEffect(() => {
-    garbageLocations.forEach((garbage) => {
-      const marker = L.marker([garbage.lat, garbage.lng], { icon: redIcon }).addTo(map);
-      const popup = L.popup({ autoClose: false, closeOnClick: false })
-        .setLatLng([garbage.lat, garbage.lng])
-        .setContent(`<span style="font-weight: bold;">🗑️ ${garbage.description}</span>`);
-      marker.bindPopup(popup).openPopup();
+
+
+    // Add detected locations to map
+    detectedLocations.forEach((loc) => {
+      const marker = L.marker([loc.latitude, loc.longitude], { icon: blueIcon }).addTo(map);
+      const popup = L.popup({ autoClose: true, closeOnClick: true })
+        .setLatLng([loc.latitude, loc.longitude])
+        .setContent(`
+          <div>
+            <span style="font-weight: bold;">📍 ${loc.city || 'Unknown location'}</span><br>
+            <span>Detected: ${new Date(loc.timestamp * 1000).toLocaleString()}</span>
+          </div>
+        `);
+      marker.bindPopup(popup);
     });
-  }, [map]);
+
+    
+  }, [map, detectedLocations]);
 
   return null;
 };
@@ -44,6 +54,12 @@ export default function Map() {
 
 
   const [file, setFile] = useState(null);
+  const [detectedLocations, setDetectedLocations] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [mapCenter, setMapCenter] = useState([20, 78]);
+  const [mapZoom, setMapZoom] = useState(5);
 
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
@@ -51,6 +67,74 @@ export default function Map() {
       setFile(selectedFile);
     }
   };
+
+  // Function to fetch detected locations from the API
+  const fetchDetectedLocations = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await fetch('http://localhost:5000/api/location/get-location');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+       console.log(data.locations)
+      if ( data.locations) {
+        setDetectedLocations(data.locations);
+        
+        // Update status text
+        const statusElement = document.getElementById('location-status');
+        if (statusElement) {
+          statusElement.textContent = `${data.locations.length} locations detected`;
+        }
+      } else {
+        throw new Error(data.message || 'Failed to fetch locations');
+      }
+    } catch (err) {
+      console.error('Error fetching locations:', err);
+      setError(err.message);
+      
+      // Update status text
+      const statusElement = document.getElementById('location-status');
+      if (statusElement) {
+        statusElement.textContent = 'Failed to fetch locations';
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Function to handle location selection from the list
+  const handleLocationSelect = (location) => {
+    setSelectedLocation(location);
+    setMapCenter([location.latitude, location.longitude]);
+    setMapZoom(15);
+    
+    // Update coordinates display
+    const coordsDisplay = document.getElementById('coordinates-display');
+    const latDisplay = document.getElementById('lat-display');
+    const lngDisplay = document.getElementById('lng-display');
+    
+    if (coordsDisplay && latDisplay && lngDisplay) {
+      coordsDisplay.classList.remove('hidden');
+      latDisplay.textContent = location.latitude;
+      lngDisplay.textContent = location.longitude;
+    }
+  };
+
+  // Fetch locations when component mounts
+  useEffect(() => {
+    fetchDetectedLocations();
+    
+    // Set up interval to refresh locations every 30 seconds
+    const intervalId = setInterval(fetchDetectedLocations, 30000);
+    
+    // Clean up interval on component unmount
+    return () => clearInterval(intervalId);
+  }, []);
+
   return (
     <div>
       <section id="map-interface" className="py-16 bg-white dark:bg-neutral-800">
@@ -128,138 +212,67 @@ export default function Map() {
           </div>
         </div>
         {/* Map Container */}
-        <div
-          id="map"
-          className="h-96 w-full bg-gray-50 dark:bg-neutral-900 relative overflow-hidden"
-        >
-          {/* Loading State */}
-          <MapContainer center={[20.9374, 77.7796]} zoom={3} style={{ height: "90vh", width: "90vw" }}>
-//         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-//         <OpenAllPopups />
-//       </MapContainer>
-          {/* Map Controls (Shown when map loads) */}
-          <div
-            className="absolute bottom-4 right-4 flex-col space-y-2 hidden"
-            id="map-controls"
-          >
-            <button className="bg-white dark:bg-neutral-700 shadow-md hover:bg-gray-100 dark:hover:bg-neutral-600 p-2 rounded-full transition">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-gray-600 dark:text-gray-300"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                />
-              </svg>
-            </button>
-            <button className="bg-white dark:bg-neutral-700 shadow-md hover:bg-gray-100 dark:hover:bg-neutral-600 p-2 rounded-full transition">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-gray-600 dark:text-gray-300"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M18 12H6"
-                />
-              </svg>
-            </button>
-            <button className="bg-white dark:bg-neutral-700 shadow-md hover:bg-gray-100 dark:hover:bg-neutral-600 p-2 rounded-full transition">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-gray-600 dark:text-gray-300"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-        {/* Map Info Panel */}
-        <div className="p-4 bg-white dark:bg-neutral-800 border-t border-gray-200 dark:border-neutral-700">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse mr-2" />
-              <span className="text-sm text-gray-600 dark:text-gray-300">
-                Location status:{" "}
-                <span id="location-status">Waiting for detection</span>
-              </span>
-            </div>
-            <button
-              id="recenter-map"
-              className="text-sm text-green-500 hover:text-green-600 dark:hover:text-green-400 flex items-center"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 mr-1"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-              Re-center Map
-            </button>
-          </div>
-          {/* Coordinates Display */}
-          <div
-            id="coordinates-display"
-            className="mt-3 p-3 bg-gray-50 dark:bg-neutral-700 rounded-lg text-sm text-gray-600 dark:text-gray-300 hidden"
-          >
-            <div className="flex justify-between items-center mb-2">
-              <span className="font-medium">Current Coordinates</span>
-              <button
-                id="copy-coords"
-                className="text-xs text-green-500 hover:text-green-600 dark:hover:text-green-400"
-              >
-                Copy
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <span className="text-gray-500 dark:text-gray-400">
-                  Latitude:
-                </span>
-                <span id="lat-display">--</span>
-              </div>
-              <div>
-                <span className="text-gray-500 dark:text-gray-400">
-                  Longitude:
-                </span>
-                <span id="lng-display">--</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+<div
+id="map"
+className="h-96 w-full bg-gray-50 dark:bg-neutral-900 relative overflow-hidden"
+>
+<MapContainer center={mapCenter} zoom={mapZoom} style={{ height: "100%", width: "100%" }}>
+  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+  <MapControl detectedLocations={detectedLocations} />
+</MapContainer>
+</div>
+{/* Map Info Panel */}
+<div className="p-4 bg-white dark:bg-neutral-800 border-t border-gray-200 dark:border-neutral-700">
+<div className="flex items-center justify-between">
+  <div className="flex items-center">
+    <div className={`w-3 h-3 rounded-full mr-2 ${isLoading ? 'bg-yellow-500 animate-pulse' : detectedLocations.length > 0 ? 'bg-green-500' : 'bg-red-500'}`} />
+    <span className="text-sm text-gray-600 dark:text-gray-300">
+      Location status:{" "}
+      <span id="location-status">
+        {isLoading ? 'Loading...' : 
+         error ? 'Error loading locations' : 
+         detectedLocations.length > 0 ? `${detectedLocations.length} locations detected` : 
+         'No locations detected'}
+      </span>
+    </span>
+  </div>
+</div>
+{/* Coordinates Display */}
+<div
+  id="coordinates-display"
+  className={`mt-3 p-3 bg-gray-50 dark:bg-neutral-700 rounded-lg text-sm text-gray-600 dark:text-gray-300 ${selectedLocation ? '' : 'hidden'}`}
+>
+  <div className="flex justify-between items-center mb-2">
+    <span className="font-medium">Current Coordinates</span>
+    <button
+      id="copy-coords"
+      className="text-xs text-green-500 hover:text-green-600 dark:hover:text-green-400"
+      onClick={() => {
+        if (selectedLocation) {
+          navigator.clipboard.writeText(`${selectedLocation.latitude}, ${selectedLocation.longitude}`);
+        }
+      }}
+    >
+      Copy
+    </button>
+  </div>
+  <div className="grid grid-cols-2 gap-2">
+    <div>
+      <span className="text-gray-500 dark:text-gray-400">
+        Latitude:
+      </span>
+      <span id="lat-display">{selectedLocation ? selectedLocation.latitude.toFixed(6) : '--'}</span>
+    </div>
+    <div>
+      <span className="text-gray-500 dark:text-gray-400">
+        Longitude:
+      </span>
+      <span id="lng-display">{selectedLocation ? selectedLocation.longitude.toFixed(6) : '--'}</span>
+    </div>
+  </div>
+</div>
+</div>
+</div>
       {/* Camera Interface */}
       <div className="lg:w-1/3 w-full">
         <div className="bg-white dark:bg-neutral-700 rounded-xl shadow-lg overflow-hidden h-full">

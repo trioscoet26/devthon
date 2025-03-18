@@ -9,6 +9,8 @@ import userRoutes from './routes/userRoutes.js';
 import listingRoutes from './routes/listingRoutes.js';
 import allUserRoutes from './routes/allUserRoutes.js';
 import payment from './routes/payment.js';
+import  locationRoutes from './routes/locationRoutes.js';
+
 
 // Load environment variables
 dotenv.config();
@@ -37,6 +39,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/listings', listingRoutes);
 app.use("/api/allusers", allUserRoutes);
 app.use("/api/payment", payment);
+app.use("/api/location", locationRoutes);
+
 
 
 // Basic health check route
