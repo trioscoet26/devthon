@@ -19,7 +19,7 @@ const CreateListing = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const materialTypes = ['Plastic', 'Metal', 'Glass', 'Paper', 'Wood', 'Textile', 'Electronic', 'Other'];
+  const materialTypes = ['Plastic', 'Metal', 'Glass', 'Paper', 'Organic', 'Electronics', 'Other'];
   const unitTypes = ['kg', 'tons', 'pieces', 'cubic meters', 'liters'];
 
   const handleChange = (e) => {
@@ -28,14 +28,8 @@ const CreateListing = () => {
       ...formData,
       [name]: value
     });
-
-    if ((name === 'price' || name === 'quantity') && formData.price && formData.quantity) {
-      const calculatedAmount = parseFloat(formData.price) * parseFloat(formData.quantity);
-      setFormData(prev => ({
-        ...prev,
-        amount: calculatedAmount.toFixed(2)
-      }));
-    }
+    
+    // Remove the automatic calculation logic that was here
   };
 
   const handleSubmit = async (e) => {
@@ -176,7 +170,7 @@ const CreateListing = () => {
           </div>
 
           <div>
-            <label className="block mb-2">Price (per unit)</label>
+            <label className="block mb-2">Maximum Green Coins</label>
             <input
               type="number"
               name="price"
@@ -191,16 +185,19 @@ const CreateListing = () => {
           </div>
 
           <div>
-            <label className="block mb-2">Total Amount</label>
-            <input
-              type="number"
-              name="amount"
-              value={formData.amount}
-              className="w-full bg-gray-700 p-3 rounded text-white"
-              placeholder="Calculated automatically"
-              readOnly
-            />
-          </div>
+  <label className="block mb-2">Total Amount</label>
+  <input
+    type="number"
+    name="amount"
+    value={formData.amount}
+    onChange={handleChange}
+    className="w-full bg-gray-700 p-3 rounded text-white"
+    placeholder="Enter total amount"
+    required
+    min="0"
+    step="0.01"
+  />
+</div>
         </div>
 
         <div className="mt-8 text-center">

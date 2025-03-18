@@ -109,7 +109,7 @@ const History = () => {
                         <th className="p-2 text-left">Material</th>
                         <th className="p-2 text-left">Quantity</th>
                         <th className="p-2 text-left">Green Coins Used</th>
-                        <th className="p-2 text-left">A</th>
+                        <th className="p-2 text-left">Amount</th>
                         <th className="p-2 text-left">Location</th>
                       </tr>
                     </thead>
@@ -126,8 +126,8 @@ const History = () => {
                             </td>
                             <td className="p-2">{listing.materialType}</td>
                             <td className="p-2">{listing.quantity} {listing.unit}</td>
-                            <td className="p-2">${listing.price} </td>
-                            <td className="p-2">${listing.amount - listing.price}</td>
+                            <td className="p-2">{listing.price} </td>
+                            <td className="p-2">{listing.amount - listing.price} Rs</td>
                             <td className="p-2">{listing.location}</td>
                           </tr>
                         );

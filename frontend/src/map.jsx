@@ -22,34 +22,90 @@ const blueIcon = new L.Icon({
   popupAnchor: [0, -35],
 });
 
-
-
 // Map component to display garbage locations and detected locations
 const MapControl = ({ detectedLocations }) => {
   const map = useMap();
 
   useEffect(() => {
-
-
     // Add detected locations to map
-    detectedLocations.forEach((loc) => {
+    detectedLocations.forEach(async (loc) => {
       const marker = L.marker([loc.latitude, loc.longitude], { icon: blueIcon }).addTo(map);
-      const popup = L.popup({ autoClose: true, closeOnClick: true })
-        .setLatLng([loc.latitude, loc.longitude])
-        .setContent(`
-          <div>
-            <span style="font-weight: bold;">📍 ${loc.city || 'Unknown location'}</span><br>
-            <span>Detected: ${new Date(loc.timestamp * 1000).toLocaleString()}</span>
-          </div>
-        `);
-      marker.bindPopup(popup);
-    });
+      
+      // Format the timestamp to a readable date/time
+      const detectionTime = new Date(loc.timestamp).toLocaleString();
+      
+      // Fetch city name using OpenStreetMap Nominatim API
+      let cityName = 'Unknown location';
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${loc.latitude}&lon=${loc.longitude}&zoom=10`
+        );
+        const data = await response.json();
+        
+        // Extract city name from the response
+        if (data.address) {
+          cityName = data.address.city || 
+                    data.address.town || 
+                    data.address.village || 
+                    data.address.hamlet || 
+                    'Unknown location';
+        }
+      } catch (error) {
+        console.error('Error fetching location name:', error);
+      }
 
-    
+      // Create popup with city name and formatted timestamp
+      const popup = L.popup({ 
+        autoClose: true, 
+        closeOnClick: true
+      })
+      .setLatLng([loc.latitude, loc.longitude])
+      .setContent(`
+        <div>
+          <span style="font-weight: bold;">📍 ${cityName}</span><br>
+          <span>Detected: ${detectionTime}</span>
+        </div>
+      `);
+      
+      // Add event listeners for hover and click
+      marker.bindPopup(popup);
+      
+      // Show popup on hover
+      marker.on('mouseover', function() {
+        this.openPopup();
+      });
+      
+      // Hide popup when mouse leaves the marker
+      marker.on('mouseout', function() {
+        this.closePopup();
+      });
+      
+      // Use flyTo for smooth transition when clicked
+      marker.on('click', function() {
+        map.flyTo([loc.latitude, loc.longitude], 15, {
+          animate: true,
+          duration: 1 // duration in seconds
+        });
+        
+        // Update the selectedLocation info on UI
+        const coordsDisplay = document.getElementById('coordinates-display');
+        const latDisplay = document.getElementById('lat-display');
+        const lngDisplay = document.getElementById('lng-display');
+        
+        if (coordsDisplay && latDisplay && lngDisplay) {
+          coordsDisplay.classList.remove('hidden');
+          latDisplay.textContent = loc.latitude;
+          lngDisplay.textContent = loc.longitude;
+        }
+      });
+    });
   }, [map, detectedLocations]);
 
   return null;
 };
+
+
+
 export default function Map() {
 
 
@@ -174,40 +230,14 @@ export default function Map() {
               className="p-2 hover:bg-gray-300 dark:hover:bg-neutral-500 rounded-full transition"
               title="Refresh map"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-gray-600 dark:text-gray-300"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
+          
             </button>
             <button
               id="map-fullscreen-btn"
               className="p-2 hover:bg-gray-300 dark:hover:bg-neutral-500 rounded-full transition ml-2"
               title="Toggle fullscreen"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-gray-600 dark:text-gray-300"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 0h-4m4 0l-5-5"
-                />
-              </svg>
+             
             </button>
           </div>
         </div>
@@ -244,17 +274,7 @@ className="h-96 w-full bg-gray-50 dark:bg-neutral-900 relative overflow-hidden"
 >
   <div className="flex justify-between items-center mb-2">
     <span className="font-medium">Current Coordinates</span>
-    <button
-      id="copy-coords"
-      className="text-xs text-green-500 hover:text-green-600 dark:hover:text-green-400"
-      onClick={() => {
-        if (selectedLocation) {
-          navigator.clipboard.writeText(`${selectedLocation.latitude}, ${selectedLocation.longitude}`);
-        }
-      }}
-    >
-      Copy
-    </button>
+   
   </div>
   <div className="grid grid-cols-2 gap-2">
     <div>
