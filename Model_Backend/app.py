@@ -10,7 +10,7 @@ import requests
 from pymongo import MongoClient
 from models import get_db
 import time, geocoder
-
+import os 
 # Initialize Flask App
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend communication
@@ -173,4 +173,5 @@ def open_video():
 
 # Run the Flask App
 if __name__ == "__main__":
-    app.run()
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
