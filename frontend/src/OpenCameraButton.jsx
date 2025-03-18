@@ -48,6 +48,15 @@ const OpenCameraButton = () => {
     }
 
     setLoading(false);
+
+    // now call the backend 
+    setLoading(true);
+    try {
+      await fetch(`${API_URL}/open_camera`, { method: "GET" });
+    } catch (error) {
+      console.error("Error opening camera:", error);
+    }
+    setLoading(false);
   };
 
   const storeLocation = async (latitude, longitude) => {
