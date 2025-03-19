@@ -21,11 +21,11 @@ const OpenCameraButton = () => {
         },
         (error) => {
           console.error("Error getting location:", error);
-          alert("Please allow location access.");
+          // alert("Please allow location access.");
         }
       );
     } else {
-      alert("Geolocation is not supported by this browser.");
+      // alert("Geolocation is not supported by this browser.");
     }
   };
 
@@ -41,10 +41,10 @@ const OpenCameraButton = () => {
         // Store location in MongoDB
         await storeLocation(latitude, longitude);
 
-        alert("Location stored in database!");
+        // alert("Location stored in database!");
       });
     } else {
-      alert("Geolocation is not supported.");
+      // alert("Geolocation is not supported.");
     }
 
     setLoading(false);
