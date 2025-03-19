@@ -40,6 +40,8 @@ app.use('/api/listings', listingRoutes);
 app.use("/api/allusers", allUserRoutes);
 app.use("/api/payment", payment);
 app.use("/api/location", locationRoutes);
+app.use('/api/user', userRoutes);
+
 
 
 

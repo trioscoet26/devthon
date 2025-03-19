@@ -6,6 +6,8 @@ import { useAuth ,useClerk } from '@clerk/clerk-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useUser } from "@clerk/clerk-react";
+
 
 export default function Marketplace() {
   const [listings, setListings] = useState([]);
@@ -20,29 +22,66 @@ export default function Marketplace() {
   const { getToken } = useAuth(); 
   const [amount, setamount] = useState(10);
   const [orderDetails, setOrderDetails] = useState(null);
+  const [userGreenCoins, setUserGreenCoins] = useState(0);
+  const { user, isLoaded, isSignedIn } = useUser();
+  const [userProfile, setUserProfile] = useState(null);
 
 
-
-
-  const handlePayment = async (listingId, finalPrice) => {
+// Add this function to fetch user data including GreenCoins
+useEffect(() => {
+  const fetchUserData = async () => {
+    if (!isLoaded || !isSignedIn) return;
+    
     try {
-      const res = await fetch(`https://smartwaste-3smg.onrender.com/api/payment/order`, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json"
-        },
-        body: JSON.stringify({
-          amount: finalPrice
-        })
-      });
-  
-      const data = await res.json();
-      // console.log(data);
-      handlePaymentVerify(data.data, listingId, finalPrice);
+      setLoading(true);
+      
+      // Get the Clerk ID of the currently logged-in user
+      const clerkId = user.id;
+      
+      // Fetch user data from your backend API using the Clerk ID
+      const response = await axios.get(
+        `http://localhost:5000/api/user/profile/${clerkId}`
+      );
+      
+      setUserProfile(response.data);
+      setUserGreenCoins(response.data.greenCoins);
+      setLoading(false);
     } catch (error) {
-      console.log(error);
+      console.error('Error fetching user data:', error);
+      setLoading(false);
     }
+  };
+
+  fetchUserData();
+}, [isLoaded, isSignedIn, user]);
+
+
+const handlePayment = async (listingId, finalPrice) => {
+  // Check if user has enough GreenCoins for the discount
+  const requestedCoins = discountCoins[listingId] || 0;
+  
+  if (requestedCoins > userGreenCoins) {
+    toast.error(`You only have ${userGreenCoins} GreenCoins available.`);
+    return;
   }
+  
+  try {
+    const res = await fetch(`https://smartwaste-3smg.onrender.com/api/payment/order`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        amount: finalPrice
+      })
+    });
+
+    const data = await res.json();
+    handlePaymentVerify(data.data, listingId, finalPrice);
+  } catch (error) {
+    console.log(error);
+  }
+}
   // handlePaymentVerify Function
   const handlePaymentVerify = async (data, listingId, finalPrice) => {
     const options = {
@@ -140,11 +179,35 @@ const updateListingPrice = (listingId, coins) => {
 
 
  // Update the handleDiscountChange function to also update the listing price API
+// Modify your handleDiscountChange function to validate against available coins
 const handleDiscountChange = (listingId, coins, maxCoins) => {
-  // Ensure discount doesn't exceed available coins or item price
+  // First ensure discount doesn't exceed available coins or item price
   const safeCoins = Math.min(Math.max(0, coins), maxCoins);
   
-  // Update discount coins for this specific listing
+  // Check if user has enough coins
+  if (safeCoins > userGreenCoins) {
+    toast.error(`You only have ${userGreenCoins} GreenCoins available.`);
+    // Set the value to user's available coins or keep previous value
+    const validCoins = Math.min(userGreenCoins, discountCoins[listingId] || 0);
+    
+    setDiscountCoins(prev => ({
+      ...prev,
+      [listingId]: validCoins
+    }));
+    
+    // Recalculate final price with valid coins
+    const listing = listings.find(item => item._id === listingId);
+    if (listing) {
+      const newFinalPrice = Math.max(0, listing.amount - validCoins);
+      setFinalPrices(prev => ({
+        ...prev,
+        [listingId]: newFinalPrice
+      }));
+    }
+    return;
+  }
+  
+  // Continue with original functionality if validation passes
   setDiscountCoins(prev => ({
     ...prev,
     [listingId]: safeCoins
@@ -158,8 +221,6 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
       ...prev,
       [listingId]: newFinalPrice
     }));
-    
-    // Update the listing price in the API
   }
 };
 // const updateListingPriceAPI = async (listingId, coins) => {
@@ -186,6 +247,15 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
   // Initial fetch and when filters change
   useEffect(() => {
     fetchListings();
+    const loadUserData = async () => {
+      const token = await getToken();
+      if (token) {
+        // fetchUserData();
+        fetchPurchasedItems();
+      }
+    };
+    
+    loadUserData();
   }, [materialType, search ]);
 
   // Handle search input with debounce
@@ -581,21 +651,21 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
                       Posted {formatDate(listing.createdAt)}
                     </span>
                  {/* GreenCoin Input - Update this section */}
+{/* In the input field section */}
 <div className="flex justify-between items-center mb-2">
   <label htmlFor={`coins-${listing._id}`} className="text-gray-700 dark:text-gray-300">
-    Apply GreenCoins:
+    Apply GreenCoins: ({userGreenCoins} available)
   </label>
   <div className="flex items-center">
     <input
       id={`coins-${listing._id}`}
       type="number"
-      min="0"
       max={listing.price} // Maximum coins should be limited
-      value={discountCoins[listing._id] || 0}
-      onChange={(e) => handleDiscountChange(listing._id, parseInt(e.target.value), listing.price)}
+      value={discountCoins[listing._id]}
+      onChange={(e) => handleDiscountChange(listing._id, parseInt(e.target.value), Math.min(listing.price, userGreenCoins))}
       className="w-16 p-1 border border-gray-300 dark:border-gray-600 rounded text-center mr-2"
     />
-    <span className="text-sm">/ {listing.price} available</span>
+    <span className="text-sm">/ {listing.price} Maximum </span>
   </div>
 </div>
 

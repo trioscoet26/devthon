@@ -13,6 +13,38 @@ export const getCurrentUser = async (req, res) => {
   }
 };
 
+export const getUserProfileByClerkId = async (req, res) => {
+  try {
+    const { clerkId } = req.params;
+    
+    const user = await User.findOne({ clerkId }).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    res.json(user);
+  } catch (error) {
+    console.error('Error in getUserProfileByClerkId:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+export const getUserProfile = async (req, res) => {
+  try {
+    // req.user should be set by your auth middleware
+    const userId = req.user.id;
+    
+    const user = await User.findById(userId).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    res.json(user);
+  } catch (error) {
+    console.error('Error in getUserProfile:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 // ✅ Update user profile
 export const updateUserProfile = async (req, res) => {
   try {

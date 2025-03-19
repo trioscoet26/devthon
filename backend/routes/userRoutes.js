@@ -1,6 +1,6 @@
 import express from "express";
 import { requireAuth, attachUser } from "../middleware/authMiddleware.js";
-import { getCurrentUser, updateUserProfile, addGreenCoins ,updateTotalGreenCoins} from "../controllers/userController.js";
+import { getCurrentUser, updateUserProfile, addGreenCoins ,updateTotalGreenCoins , getUserProfile , getUserProfileByClerkId} from "../controllers/userController.js";
 import { Clerk } from "@clerk/clerk-sdk-node";
 import dotenv from 'dotenv';
 
@@ -25,11 +25,14 @@ router.get("/:clerkId", async (req, res) => {
         res.status(500).json({ error: "Failed to fetch user" });
     }
 });
+router.get('/profile/:clerkId',  getUserProfileByClerkId);
 
 // ✅ Protected routes
 router.get("/me", requireAuth, attachUser, getCurrentUser);
 router.put("/profile", requireAuth, attachUser, updateUserProfile);
 router.post("/green-coins", requireAuth, attachUser, addGreenCoins);
 router.post('/update-coins',  requireAuth, attachUser, updateTotalGreenCoins);
+router.get('/one', requireAuth, attachUser, getUserProfile);
+
 
 export default router;
