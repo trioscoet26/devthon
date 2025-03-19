@@ -587,7 +587,7 @@ const acceptedReports = reports.filter(report => report.status === 'accepted').l
           <option value="organic">Organic Waste</option>
           <option value="construction">Construction Debris</option>
           <option value="hazardous">Hazardous Materials</option>
-          <option value="Garbage">Hazardous Materials</option>
+          <option value="Garbage">Garbage</option>
           <option value="other">Other</option>
         </select>
       </div>
@@ -658,7 +658,7 @@ const acceptedReports = reports.filter(report => report.status === 'accepted').l
       placeholder="Enter address or describe the location"
       className="w-full px-4 py-2 border border-gray-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
     />
-    <button
+    {/* <button
       type="button"
       onClick={handleGeocoding}
       disabled={isSearching || !formData.location}
@@ -672,7 +672,7 @@ const acceptedReports = reports.filter(report => report.status === 'accepted').l
       ) : (
         "Search"
       )}
-    </button>
+    </button> */}
   </div>
 
   {/* Map Container */}
