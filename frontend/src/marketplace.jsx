@@ -40,7 +40,7 @@ useEffect(() => {
       
       // Fetch user data from your backend API using the Clerk ID
       const response = await axios.get(
-        `http://localhost:5000/api/user/profile/${clerkId}`
+        `https://smartwaste-3smg.onrender.com/api/user/profile/${clerkId}`
       );
       
       setUserProfile(response.data);
