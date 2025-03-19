@@ -797,7 +797,7 @@ const acceptedReports = reports.filter(report => report.status === 'accepted').l
         </button>
       </div>
       
-      <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+      {/* <div className="text-center text-sm text-gray-500 dark:text-gray-400">
         You'll earn approximately{" "}
         <span className="font-medium text-teal-600 dark:text-teal-400">
           {formData.estimated_quantity === 'small' ? '10' : 
@@ -805,7 +805,7 @@ const acceptedReports = reports.filter(report => report.status === 'accepted').l
            formData.estimated_quantity === 'large' ? '30' : '50'} GreenCoins
         </span>{" "}
         based on your report details
-      </div>
+      </div> */}
     </form>
 
 
@@ -1208,7 +1208,7 @@ const acceptedReports = reports.filter(report => report.status === 'accepted').l
               </div>
               
               {/* View details link */}
-              <div className="mt-4 flex justify-end">
+              {/* <div className="mt-4 flex justify-end">
                 <a 
                   href={`/reports/${report._id}`} 
                   className="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 text-sm font-medium flex items-center"
@@ -1218,7 +1218,7 @@ const acceptedReports = reports.filter(report => report.status === 'accepted').l
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </a>
-              </div>
+              </div> */}
             </div>
           </div>
         ))}
