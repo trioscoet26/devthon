@@ -1,5 +1,4 @@
-import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const AdminNavbar = ({ setIsAdmin }) => {
   const navigate = useNavigate();
@@ -11,14 +10,13 @@ const AdminNavbar = ({ setIsAdmin }) => {
   };
 
   return (
-    <nav className="bg-black text-white p-4 flex justify-between">
+    <nav className="bg-[#000000] text-[#FFFFFF] p-4 flex flex-wrap items-center justify-between w-full">
       <div className="text-2xl font-bold">
-              <span className="text-[#1E8449]">Smart</span>
-              <span className="text-[#3498DB]">Waste</span>
-            </div>
-      <h1 className="text-xl font-bold mx-5 text-left">Admin Panel</h1>
-      <div>
-        
+        <span className="text-[#1E8449]">Smart</span>
+        <span className="text-[#3498DB]">Waste</span>
+      </div>
+      <h1 className="text-xl font-bold text-center flex-1 md:flex-none">Admin Panel</h1>
+      <div className="mt-2 md:mt-0">
         <button 
           onClick={handleLogout} 
           className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition duration-300"

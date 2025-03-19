@@ -3,9 +3,11 @@ import Charts from "./charts";
 import ApproveReport from "./ApproveReport";
 import CreateListing from "./CreateListing";
 import History  from "./History"
-import { BarChart2, FileText, ShoppingBag, Map } from "lucide-react";
+import { BarChart2, FileText, ShoppingBag, Map, Menu} from "lucide-react";
 
 function Sidebar({ setActiveComponent }) {
+  const [isOpen, setIsOpen] = useState(false);
+
   const menuItems = [
     { icon: BarChart2, text: "Charts", component: "Charts" },
     { icon: FileText, text: "Reports", component: "ApproveReport" },
@@ -13,15 +15,33 @@ function Sidebar({ setActiveComponent }) {
     { icon: Map, text: "Purchase History", component: "History" },
   ];
 
+  const toggleSidebar = () => setIsOpen((prev) => !prev);
+  const handleItemClick = (component) => {
+    setActiveComponent(component);
+    setIsOpen(false);
+  };
+
   return (
-    <div className="w-64   bg-black border-r border-gray-700 shadow-lg">
-      <div className="p-4">
+    <div>
+      {/* Hamburger Button */}
+      <button
+        onClick={toggleSidebar}
+        className="md:hidden p-2 m-2 bg-gray-800 text-white rounded-lg focus:outline-none"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
+
+      {/* Sidebar */}
+      <div
+        className={`fixed inset-y-0 left-0 bg-black border-r border-gray-700 shadow-lg p-4 transition-transform duration-300 
+          ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 w-64 md:relative md:block`}
+      >
         <nav>
           <ul className="space-y-4">
             {menuItems.map((item) => (
               <li key={item.text}>
                 <button
-                  onClick={() => setActiveComponent(item.component)}
+                  onClick={() => handleItemClick(item.component)}
                   className="flex items-center space-x-4 p-3 w-full text-left rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-all duration-300"
                 >
                   <item.icon className="w-6 h-6 text-gray-400 hover:text-white" />

@@ -13,6 +13,7 @@ const ReportSchema = new mongoose.Schema({
       "organic",
       "construction",
       "hazardous",
+      "Garbage",
       "other",
     ],
     required: true,
@@ -36,6 +37,7 @@ const ReportSchema = new mongoose.Schema({
       "forest", // Forest/Natural Area
       "residential", // Residential Area
       "commercial", // Commercial Area
+      "Public Place", 
       "other", // Other
     ],
     required: true,

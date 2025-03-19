@@ -3,7 +3,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
+
 const History = () => {
+
   const [users, setUsers] = useState([]);
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,20 +19,46 @@ const History = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
+  
       // Fetch all users and listings concurrently
       const [usersResponse, listingsResponse] = await Promise.all([
-        axios.get(`${API_URL}/allusers`),
-        axios.get(`${API_URL}/listings`)
+        axios.get(`${API_URL}/allusers`),  // Your existing API for users
+        axios.get(`${API_URL}/listings`)   // Your existing API for listings
       ]);
-      
-      setUsers(usersResponse.data);
+  
+      let usersData = usersResponse.data;
+  
+      // Fetch user details from Clerk for each user
+      const userDetailsPromises = usersData.map(async (user) => {
+        try {
+          const clerkResponse = await axios.get(
+            `http://localhost:5000/api/users/${user.clerkId}`, 
+            {
+              headers: {
+                Authorization: `Bearer ${import.meta.env.CLERK_SECRET_KEY}`,
+              },
+            }
+          );
+          return {
+            ...user,
+            displayName: clerkResponse.data.name || clerkResponse.data.username,
+            email: clerkResponse.data.email || "No email",
+          };
+        } catch (error) {
+          console.error(`Failed to fetch Clerk data for user ${user.clerkId}`);
+          return { ...user, displayName: "Unknown", email: "No email" };
+        }
+      });
+  
+      usersData = await Promise.all(userDetailsPromises);
+  
+      setUsers(usersData);
       setListings(listingsResponse.data);
       setLoading(false);
     } catch (err) {
-      toast.error('Failed to load data', {
-        position: 'top-right',
-        theme: 'dark',
+      toast.error("Failed to load data", {
+        position: "top-right",
+        theme: "dark",
       });
       setLoading(false);
     }
@@ -109,7 +137,7 @@ const History = () => {
                         <th className="p-2 text-left">Material</th>
                         <th className="p-2 text-left">Quantity</th>
                         <th className="p-2 text-left">Green Coins Used</th>
-                        <th className="p-2 text-left">A</th>
+                        <th className="p-2 text-left">Amount</th>
                         <th className="p-2 text-left">Location</th>
                       </tr>
                     </thead>
@@ -126,8 +154,8 @@ const History = () => {
                             </td>
                             <td className="p-2">{listing.materialType}</td>
                             <td className="p-2">{listing.quantity} {listing.unit}</td>
-                            <td className="p-2">${listing.price} </td>
-                            <td className="p-2">${listing.amount - listing.price}</td>
+                            <td className="p-2">{listing.price} </td>
+                            <td className="p-2">{listing.amount - listing.price} Rs</td>
                             <td className="p-2">{listing.location}</td>
                           </tr>
                         );

@@ -767,7 +767,7 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
               </div>
             </div>
           </div>
-          <div className="mt-6 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg">
+          {/* <div className="mt-6 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg">
             <div className="flex items-center text-amber-800 dark:text-amber-300">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -789,7 +789,7 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
               Downtown (32%), Industrial Zone (28%), University Area (18%), Tech
               Park (14%), Residential Areas (8%)
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

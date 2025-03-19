@@ -1,10 +1,55 @@
+/* eslint-disable no-unused-vars */
 import { useState } from "react";
+import axios from 'axios'
 
 const OpenCameraButton = () => {
-  const API_URL = import.meta.env.VITE_FLASK_API_URL; // Get Flask API URL from .env
+  const API_URL = import.meta.env.VITE_FLASK_API_URL; // Flask API URL from .env
   const [loading, setLoading] = useState(false);
+  const [location, setLocation] = useState(null); // Store coordinates
+
+  const getGeolocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const coords = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            timestamp: new Date().toISOString(),
+          };
+          setLocation(coords); // Store location in state
+          console.log("Current Location:", coords);
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          // alert("Please allow location access.");
+        }
+      );
+    } else {
+      // alert("Geolocation is not supported by this browser.");
+    }
+  };
 
   const handleOpenCamera = async () => {
+    setLoading(true);
+    
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+
+        console.log("Captured Location:", latitude, longitude);
+        
+        // Store location in MongoDB
+        await storeLocation(latitude, longitude);
+
+        // alert("Location stored in database!");
+      });
+    } else {
+      // alert("Geolocation is not supported.");
+    }
+
+    setLoading(false);
+
+    // now call the backend 
     setLoading(true);
     try {
       await fetch(`${API_URL}/open_camera`, { method: "GET" });
@@ -12,6 +57,24 @@ const OpenCameraButton = () => {
       console.error("Error opening camera:", error);
     }
     setLoading(false);
+  };
+
+  const storeLocation = async (latitude, longitude) => {
+    try {
+      const response = await axios.post(`https://smartwaste-3smg.onrender.com/api/location/store-location`, { latitude, longitude });
+      return response.data;
+    } catch (error) {
+      console.error("Error storing location:", error);
+    }
+  };
+  
+  const getAllLocations = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/locations`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching locations:", error);
+    }
   };
 
   return (
@@ -43,6 +106,7 @@ const OpenCameraButton = () => {
     </svg>
     {loading ? "Opening..." : "Open Camera"}
   </button>
+  
   );
 };
 

@@ -147,7 +147,7 @@ export default function hero() {
     {/* Stats */}
     <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 text-center">
       <div className="bg-neutral-800/50 p-4 rounded-lg transform transition-transform hover:scale-105">
-        <div className="text-3xl font-bold text-[#F39C12]">95%</div>
+        <div className="text-3xl font-bold text-[#F39C12]">88%</div>
         <div className="text-gray-400 mt-2">Accuracy Rate</div>
       </div>
       <div className="bg-neutral-800/50 p-4 rounded-lg transform transition-transform hover:scale-105">

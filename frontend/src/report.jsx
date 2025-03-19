@@ -126,11 +126,11 @@ const MapController = ({ coordinates, setCoordinates, locateMe, resetLocateMe, s
       // Calculate coins based on quantity
       const calculateCoins = () => {
         switch(formData.estimated_quantity) {
-          case 'small': return 10;
-          case 'medium': return 20;
-          case 'large': return 30;
-          case 'very-large': return 50;
-          default: return 10;
+          case 'small': return 20;
+          case 'medium': return 40;
+          case 'large': return 60;
+          case 'very-large': return 80;
+          default: return 30;
         }
       };
       
@@ -587,6 +587,7 @@ const acceptedReports = reports.filter(report => report.status === 'accepted').l
           <option value="organic">Organic Waste</option>
           <option value="construction">Construction Debris</option>
           <option value="hazardous">Hazardous Materials</option>
+          <option value="Garbage">Hazardous Materials</option>
           <option value="other">Other</option>
         </select>
       </div>
@@ -631,6 +632,7 @@ const acceptedReports = reports.filter(report => report.status === 'accepted').l
             <option value="forest">Forest/Natural Area</option>
             <option value="residential">Residential Area</option>
             <option value="commercial">Commercial Area</option>
+            <option value="Public Place">Public Place</option>
             <option value="other">Other</option>
           </select>
         </div>

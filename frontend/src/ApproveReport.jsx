@@ -190,9 +190,7 @@ const ApproveReport = () => {
           <span className="text-sm text-gray-400">
             Showing {reports.length} report{reports.length !== 1 ? 's' : ''}
           </span>
-          <button className="bg-purple-700 hover:bg-purple-600 text-white py-2 px-4 rounded-md text-sm transition-all">
-            Refresh Reports
-          </button>
+  
         </div>
       </div>
     </div>

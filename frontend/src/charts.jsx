@@ -1,11 +1,34 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from "react";
 import { Pie, Bar, Doughnut } from "react-chartjs-2";
 import Chart from "chart.js/auto";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerIconRetina from 'leaflet/dist/images/marker-icon-2x.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import L from 'leaflet';
+
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+
+const redIcon = L.icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+    shadowUrl: markerShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+  });
+  
+  // Fix Leaflet's default icon issue
+  delete L.Icon.Default.prototype._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: markerIconRetina,
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow
+  });
 const Charts = () => {
     const [wasteTypeData, setWasteTypeData] = useState(null);
     const [wasteFrequencyData, setWasteFrequencyData] = useState(null);
@@ -466,21 +489,26 @@ const Charts = () => {
                                 </div>
                                 <div className="p-5 h-96">
                                 <MapContainer center={[20, 78]} zoom={5} className="h-96 w-full rounded-lg">
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            {cityMarkers.map((city, index) => (
-                <Marker key={index} position={[city.lat, city.lng]} eventHandlers={{
-                    popupopen: (e) => {
-                        e.target._map.flyTo([city.lat, city.lng], 10, { duration: 1.5 });
-                    }
-                }}>
-                    <Popup>
-                        <strong>City:</strong> {city.name} <br />
-                        <strong>Total Reports:</strong> {city.reports} <br />
-                        <strong>Waste Types:</strong> {Array.from(city.types).join(", ")}
-                    </Popup>
-                </Marker>
-            ))}
-        </MapContainer>
+  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+  {cityMarkers.map((city, index) => (
+    <Marker 
+      key={index} 
+      position={[city.lat, city.lng]} 
+      icon={redIcon}
+      eventHandlers={{
+        popupopen: (e) => {
+          e.target._map.flyTo([city.lat, city.lng], 10, { duration: 1.5 });
+        }
+      }}
+    >
+      <Popup>
+        <strong>City:</strong> {city.name} <br />
+        <strong>Total Reports:</strong> {city.reports} <br />
+        <strong>Waste Types:</strong> {Array.from(city.types).join(", ")}
+      </Popup>
+    </Marker>
+  ))}
+</MapContainer>
 
                                 </div>
                             </div>
