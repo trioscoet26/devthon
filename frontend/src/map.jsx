@@ -244,7 +244,7 @@ export default function Map() {
         {/* Map Container */}
 <div
 id="map"
-className="h-96 w-full bg-gray-50 dark:bg-neutral-900 relative overflow-hidden"
+className="h-96 w-full bg-gray-50 dark:bg-neutral-900 relative overflow-hidden z-10"
 >
 <MapContainer center={mapCenter} zoom={mapZoom} style={{ height: "100%", width: "100%" }}>
   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
