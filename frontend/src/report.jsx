@@ -885,8 +885,8 @@ const acceptedReports = reports.filter(report => report.status === 'accepted').l
                 Verification Process
               </h4>
               <p className="text-gray-600 dark:text-gray-300">
-                Reports are verified through AI analysis of submitted photos and
-                cross-referenced with our database to prevent duplication.
+                Reports are verified through AI analysis and
+                authorities to verfiy by the verified authority.
               </p>
             </div>
           </div>
@@ -947,7 +947,7 @@ const acceptedReports = reports.filter(report => report.status === 'accepted').l
               </h4>
               <p className="text-gray-600 dark:text-gray-300">
                 Earn GreenCoins for verified reports. The reward amount varies
-                based on waste type, quantity, and the quality of your
+                based on waste quantity, and the quality of your
                 submission.
               </p>
             </div>
@@ -1002,7 +1002,7 @@ const acceptedReports = reports.filter(report => report.status === 'accepted').l
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-gray-50 dark:bg-neutral-700 p-3 rounded-lg text-center">
               <div className="text-2xl font-bold text-teal-600 dark:text-teal-400">
-                8,543
+                85
               </div>
               <div className="text-gray-600 dark:text-gray-300 text-sm">
                 Reports Submitted
@@ -1026,7 +1026,7 @@ const acceptedReports = reports.filter(report => report.status === 'accepted').l
             </div>
             <div className="bg-gray-50 dark:bg-neutral-700 p-3 rounded-lg text-center">
               <div className="text-2xl font-bold text-teal-600 dark:text-teal-400">
-                65K
+                5K
               </div>
               <div className="text-gray-600 dark:text-gray-300 text-sm">
                 GreenCoins Awarded
@@ -1034,7 +1034,7 @@ const acceptedReports = reports.filter(report => report.status === 'accepted').l
             </div>
           </div>
           <div className="mt-4 text-sm text-gray-600 dark:text-gray-300 text-center px-6">
-            Join over 3,500 active citizens who are making a difference in their
+            Join over 350 active citizens who are making a difference in their
             communities through waste reporting
           </div>
         </div>

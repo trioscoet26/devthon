@@ -40,7 +40,7 @@ export default function hero() {
           solutions
         </p>
         <p className="text-gray-400 mb-8 max-w-xl">
-          Our system leverages computer vision, GPS tracking, and real-time data
+          Our system leverages computer vision, and real-time data
           analytics to transform how cities manage waste collection, making
           environments cleaner and operations more efficient.
         </p>
@@ -137,7 +137,7 @@ export default function hero() {
               <div className="text-xs text-gray-400">Coverage</div>
             </div>
             <div className="bg-neutral-800 p-2 rounded-lg">
-              <div className="text-[#3498DB] text-xl font-bold">3</div>
+              <div className="text-[#3498DB] text-xl font-bold">41</div>
               <div className="text-xs text-gray-400">Active Vehicles</div>
             </div>
           </div>
@@ -152,7 +152,7 @@ export default function hero() {
       </div>
       <div className="bg-neutral-800/50 p-4 rounded-lg transform transition-transform hover:scale-105">
         <div className="text-3xl font-bold text-[#1E8449]">40%</div>
-        <div className="text-gray-400 mt-2">Resource Optimization</div>
+        <div className="text-gray-400 mt-2">Monitored waste</div>
       </div>
       <div className="bg-neutral-800/50 p-4 rounded-lg transform transition-transform hover:scale-105">
         <div className="text-3xl font-bold text-[#3498DB]">24/7</div>

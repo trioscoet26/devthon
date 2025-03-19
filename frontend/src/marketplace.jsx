@@ -668,11 +668,10 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
               </div>
               <div>
                 <h4 className="font-semibold text-gray-800 dark:text-white mb-1">
-                  List Your Recyclables
+                  Explore products
                 </h4>
                 <p className="text-gray-600 dark:text-gray-300 text-sm">
-                  Add details about the type, quantity, condition, and location
-                  of your recyclable materials.
+                  Explore various ecofreindly recyclable products on marketplace.
                 </p>
               </div>
             </div>
@@ -710,11 +709,10 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
               </div>
               <div>
                 <h4 className="font-semibold text-gray-800 dark:text-white mb-1">
-                  Rate Your Experience
+                  Chat With AI
                 </h4>
                 <p className="text-gray-600 dark:text-gray-300 text-sm">
-                  Leave feedback to build trust in the community and improve
-                  future transactions.
+                  Use chatbot for more information and Contact us for any queries.
                 </p>
               </div>
             </div>
@@ -738,7 +736,7 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-gray-50 dark:bg-neutral-700 p-3 rounded-lg text-center">
               <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
-                850+
+                15+
               </div>
               <div className="text-gray-600 dark:text-gray-300 text-sm">
                 Active Listings
@@ -746,7 +744,7 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
             </div>
             <div className="bg-gray-50 dark:bg-neutral-700 p-3 rounded-lg text-center">
               <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
-                1,200
+                120
               </div>
               <div className="text-gray-600 dark:text-gray-300 text-sm">
                 Registered Users
@@ -754,7 +752,7 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
             </div>
             <div className="bg-gray-50 dark:bg-neutral-700 p-3 rounded-lg text-center">
               <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
-                15
+                7+
               </div>
               <div className="text-gray-600 dark:text-gray-300 text-sm">
                 Material Types
@@ -762,7 +760,7 @@ const handleDiscountChange = (listingId, coins, maxCoins) => {
             </div>
             <div className="bg-gray-50 dark:bg-neutral-700 p-3 rounded-lg text-center">
               <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
-                2.5k
+                2k
               </div>
               <div className="text-gray-600 dark:text-gray-300 text-sm">
                 Monthly Trades

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -130,13 +131,13 @@ export default function Map() {
         {/* Map Container */}
         <div
           id="map"
-          className="h-96 w-full bg-gray-50 dark:bg-neutral-900 relative overflow-hidden"
+          className="h-96 w-full bg-gray-50 dark:bg-neutral-900 relative overflow-hidden z-10"
         >
           {/* Loading State */}
           <MapContainer center={[20.9374, 77.7796]} zoom={3} style={{ height: "90vh", width: "90vw" }}>
-//         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-//         <OpenAllPopups />
-//       </MapContainer>
+       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+       <OpenAllPopups />
+      </MapContainer>
           {/* Map Controls (Shown when map loads) */}
           <div
             className="absolute bottom-4 right-4 flex-col space-y-2 hidden"

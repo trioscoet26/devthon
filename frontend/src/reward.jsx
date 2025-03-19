@@ -490,15 +490,14 @@ export default function Reward() {
             </div>
             <div>
               <h4 className="font-semibold text-lg text-neutral-900 dark:text-white">
-                Regular Participation
+                Regular Reporting
               </h4>
               <p className="text-neutral-600 dark:text-neutral-400 mb-2">
                 Stay active on the platform by consistently reporting waste and
-                participating in recycling activities to receive monthly
-                bonuses.
+                participating in recycling activities.
               </p>
               <p className="text-sm text-purple-600 dark:text-purple-400 font-medium">
-                Earn up to 300 Greencoins in monthly bonuses
+                Earn Greencoins regularly on consistant reporting.
               </p>
             </div>
           </div>
@@ -521,15 +520,13 @@ export default function Reward() {
             </div>
             <div>
               <h4 className="font-semibold text-lg text-neutral-900 dark:text-white">
-                Refer Friends
+               Discount
               </h4>
               <p className="text-neutral-600 dark:text-neutral-400 mb-2">
-                Invite friends and family to join the platform. Earn rewards
-                when they sign up and start participating in waste management
-                activities.
+                Get discount on purchase of ecofreindly recyclable products with a redeem of GreenCoins.
               </p>
               <p className="text-sm text-purple-600 dark:text-purple-400 font-medium">
-                Earn 100 Greencoins per successful referral
+                Earn Benefits of GreenCoins in marketplace.
               </p>
             </div>
           </div>
