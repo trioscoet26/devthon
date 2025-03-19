@@ -5,4 +5,6 @@
 .leaflet-container {
     background: #131314;
 }
-
+body{
+    background-color: #000000;
+}
